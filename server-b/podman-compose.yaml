@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  server-b:
+    image: mariadb:11
+    container_name: db-server-b
+    environment:
+      MARIADB_ROOT_PASSWORD: 12345
+      MARIADB_USER: user-b
+      MARIADB_PASSWORD: 12345
+      MARIADB_DATABASE: db-b
+    ports:
+      - 3002:3306
+    volumes:
+      - ./db-b:/var/lib/postgresql/data/pgdata:Z
+      # - ./b-init.sql:/docker-entrypoint-initdb.d/init.sql:Z

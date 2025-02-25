@@ -1,0 +1,6 @@
+CREATE TABLE productos (
+    id CHAR(36) NOT NULL DEFAULT (UUID()),
+    nombre VARCHAR(150) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB;
