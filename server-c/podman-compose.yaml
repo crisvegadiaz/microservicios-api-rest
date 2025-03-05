@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  server-b:
+    image: mariadb:11
+    container_name: db-server-c
+    environment:
+      MARIADB_ROOT_PASSWORD: 12345
+      MARIADB_USER: user-c
+      MARIADB_PASSWORD: 12345
+      MARIADB_DATABASE: db-c
+    ports:
+      - 3003:3306
+    volumes:
+      - ./db-c:/var/lib/mysql:Z
+      - ./c-init.sql:/docker-entrypoint-initdb.d/c-init.sql:Z

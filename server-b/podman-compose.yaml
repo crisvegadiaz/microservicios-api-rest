@@ -12,5 +12,5 @@ services:
     ports:
       - 3002:3306
     volumes:
-      - ./db-b:/var/lib/postgresql/data/pgdata:Z
-      # - ./b-init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+      - ./db-b:/var/lib/mysql:Z
+      - ./b-init.sql:/docker-entrypoint-initdb.d/b-init.sql:Z

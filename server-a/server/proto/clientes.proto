@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package clientes;
+
+import "google/protobuf/empty.proto";
+
+message Cliente {
+  string id = 1;
+  string nombre = 2;
+  string email = 3;
+  repeated string telefonos = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message ResponseHeader {
+  string message = 1;
+  int32 status = 2;
+  bool success = 3;
+}
+
+message ListClientesResponse {
+  ResponseHeader header = 1;
+  repeated Cliente data = 2;
+}
+
+message ClientePorIdRequest {
+  string id = 1;
+}
+
+message ClientePorIdResponse {
+  ResponseHeader header = 1;
+  Cliente data = 2;
+}
+
+message CrearNuevoClienteRequest {
+  string nombre = 1;
+  string email = 2;
+  string telefonos = 3;
+}
+
+message CrearNuevoClienteResponse {
+  ResponseHeader header = 1;
+}
+
+service Clientes {
+  rpc GetListClientes(google.protobuf.Empty) returns (ListClientesResponse) {}
+  rpc GetClientePorId(ClientePorIdRequest) returns (ClientePorIdResponse) {}
+  rpc PostCrearNuevoCliente(CrearNuevoClienteRequest) returns (ClientePorIdResponse) {}
+}
