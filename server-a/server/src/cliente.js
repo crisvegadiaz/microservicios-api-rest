@@ -12,8 +12,10 @@ const clientes = new proto.Clientes(
 );
 
 // Llamar al método GetListClientes
-clientes.PostCrearNuevoCliente(
-  { nombre: "pepe", email: "pepe@gmail.com", telefonos: "+52 39 2090-3245"},
+clientes.DeleteEliminarCliente(
+  {
+    id: "0d8e9c7d-f9c6-11ef-b38b-6606c243d37f"
+  },
   (error, response) => {
     if (!error) {
       console.log("Respuesta del servidor:", response);

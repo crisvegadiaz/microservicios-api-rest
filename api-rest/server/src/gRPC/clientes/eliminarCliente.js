@@ -20,10 +20,10 @@ function validarDatos(id) {
   return uuidRegex.test(id)
     ? false
     : `ID no válido: "${id}". Debe tener el formato UUID (8-4-4-4-12 caracteres hexadecimales con guiones).`;
-};
+}
 
-// Función para obtener un cliente por su id
-function clientePorId (req, res) {
+// Función para eliminar un cliente por su id
+function eliminarCliente(req, res) {
   const { id } = req.params;
   const validacion = validarDatos(id);
 
@@ -31,9 +31,9 @@ function clientePorId (req, res) {
     return res.status(400).json(successResponse(validacion, 400));
   }
 
-  clientes.GetClientePorId({ id }, (error, data) => {
+  clientes.DeleteEliminarCliente({ id }, (error, data) => {
     if (error) {
-      console.error("Error en clientePorId:", error);
+      console.error("Error en eliminarCliente:", error);
       return res
         .status(500)
         .json(successResponse("Error al obtener el cliente api-rest"));
@@ -42,6 +42,6 @@ function clientePorId (req, res) {
     const status = data?.header?.status || 200;
     return res.status(status).json(data);
   });
-};
+}
 
-export default clientePorId;
+export default eliminarCliente;

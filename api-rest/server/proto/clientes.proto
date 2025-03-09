@@ -36,10 +36,44 @@ message ClientePorIdResponse {
 message CrearNuevoClienteRequest {
   string nombre = 1;
   string email = 2;
-  string telefonos = 3;
+  string telefono = 3;
 }
 
 message CrearNuevoClienteResponse {
+  ResponseHeader header = 1;
+}
+
+message ActualizarDatosClienteRequest{
+  string id = 1;
+  Cliente data = 2;
+}
+
+message ActualizarDatosClienteResponse {
+  ResponseHeader header = 1;
+}
+
+message AgregarTelefonoClienteRequest {
+ string id = 1;
+ string telefono = 2;
+}
+message AgregarTelefonoClienteResponse {
+  ResponseHeader header = 1;
+}
+
+message EliminarTelefonoClienteRequest {
+  string id = 1;
+  string telefono = 2;
+}
+
+message EliminarTelefonoClienteResponse {
+  ResponseHeader header = 1;
+}
+
+message EliminarClienteRequest{
+  string id = 1;
+}
+
+message EliminarClienteResponse{
   ResponseHeader header = 1;
 }
 
@@ -47,4 +81,8 @@ service Clientes {
   rpc GetListClientes(google.protobuf.Empty) returns (ListClientesResponse) {}
   rpc GetClientePorId(ClientePorIdRequest) returns (ClientePorIdResponse) {}
   rpc PostCrearNuevoCliente(CrearNuevoClienteRequest) returns (ClientePorIdResponse) {}
+  rpc PutActualizarDatosCliente(ActualizarDatosClienteRequest) returns (ActualizarDatosClienteResponse) {}
+  rpc PutAgregarTelefonoCliente(AgregarTelefonoClienteRequest) returns (AgregarTelefonoClienteResponse) {}
+  rpc DeleteEliminarTelefonoCliente(EliminarTelefonoClienteRequest) returns (EliminarTelefonoClienteResponse) {}
+  rpc DeleteEliminarCliente(EliminarClienteRequest) returns (EliminarClienteResponse) {}
 }

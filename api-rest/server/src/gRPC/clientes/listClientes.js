@@ -12,23 +12,20 @@ const clientes = new proto.Clientes(
   grpc.credentials.createInsecure()
 );
 
+// Función para obtener clientes
 function listClientes(_, res) {
-  try {
-    clientes.GetListClientes({}, (error, data) => {
-      if (!error) {
-        let status = data.header.status || 200;
-        res.status(status).json(data);
-      } else {
-        console.error("Error listClientes: ", error);
-        res
-          .status(500)
-          .json(successResponse("Error al obtener la lista de clientes api-rest"));
-      }
-    });
-  } catch (error) {
-    console.error("Error listClientes: ", error);
-    res.status(500).json(successResponse("Error interno del servidor api-rest"));
-  }
+  clientes.GetListClientes({}, (error, data) => {
+    if (error) {
+      console.error("Error listClientes: ", error);
+      return res
+        .status(500)
+        .json(
+          successResponse("Error al obtener la lista de clientes api-rest")
+        );
+    }
+    const status = data?.header?.status || 200;
+    return res.status(status).json(data);
+  });
 }
 
 export default listClientes;

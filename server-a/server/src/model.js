@@ -5,7 +5,7 @@ dotenv.config();
 
 // Respuestas estándar de éxito y error
 function successResponse(message, status = 503, success = false, data) {
-  return { header:{ message, status, success}, data };
+  return { header: { message, status, success }, data };
 }
 
 function fecha(cliente) {
@@ -64,10 +64,9 @@ class Modelo {
    */
   static async obtenerClientePorId(id) {
     try {
-      const [res] = await pool.query(
-        "SELECT * FROM clientes WHERE id = ?",
-        [id]
-      );
+      const [res] = await pool.query("SELECT * FROM clientes WHERE id = ?", [
+        id,
+      ]);
 
       if (res === undefined) {
         return successResponse("Cliente no encontrado", 404, false);
@@ -86,15 +85,15 @@ class Modelo {
    * Crea un nuevo cliente.
    * @param {string} nombre - Nombre del cliente.
    * @param {string} email - Email del cliente.
-   * @param {string} telefonos - Teléfonos (en formato JSON) del cliente.
+   * @param {string} telefono - Teléfonos del cliente.
    * @returns {Object} Respuesta de éxito.
    */
-  static async crearNuevoCliente(nombre, email, telefonos) {
+  static async crearNuevoCliente(nombre, email, telefono) {
     try {
       await pool.query(
         `INSERT INTO clientes (nombre, email, telefonos) 
          VALUES (?, ?, JSON_ARRAY(?))`,
-        [nombre, email, telefonos]
+        [nombre, email, telefono]
       );
       return successResponse("Cliente creado", 200, true);
     } catch (error) {
@@ -106,22 +105,28 @@ class Modelo {
   /**
    * Actualiza los datos de un cliente.
    * @param {number} id - ID del cliente.
-   * @param {Object} datos - Datos a actualizar.
+   * @param {Object} data - Datos a actualizar.
    * @returns {Object} Respuesta de éxito.
    */
-  static async actualizarDatosCliente(id, datos) {
-    // Construimos la parte SET de la consulta dinámicamente.
-    const camposActualizacion = Object.keys(datos)
+  static async actualizarDatosCliente(id, data) {
+    if (data.telefonos) {
+      data.telefonos = JSON.stringify(data.telefonos);
+    }
+
+    const camposActualizacion = Object.keys(data)
       .map((key) => `${key} = ?`)
       .join(", ");
-    const valores = Object.values(datos);
+    const valores = Object.values(data);
 
     try {
       await pool.query(
         `UPDATE clientes SET ${camposActualizacion} WHERE id = ?`,
         [...valores, id]
       );
-      return successResponse("Cliente actualizado", 200, true);
+
+      return res.affectedRows === 1
+        ? successResponse("Cliente actualizado", 200, true)
+        : successResponse("El clientes no existe", 404, false);
     } catch (error) {
       console.error("Error actualizarDatosCliente: " + error);
       throw successResponse("Error al actualizar el cliente server-a");
@@ -136,14 +141,16 @@ class Modelo {
    */
   static async agregarTelefonoCliente(id, telefono) {
     try {
-      await pool.query(
+      const res = await pool.query(
         `UPDATE clientes
          SET telefonos = JSON_ARRAY_APPEND(telefonos, '$', ?)
          WHERE id = ?`,
         [telefono, id]
       );
-      re;
-      return successResponse("Teléfono agregado", 200, true);
+
+      return res.affectedRows === 1
+        ? successResponse("Teléfono agregado", 200, true)
+        : successResponse("El clientes no existe", 404, false);
     } catch (error) {
       console.error("Error agregarTelefonoCliente: " + error);
       throw successResponse("Error al agregar el teléfon server-a");
@@ -158,7 +165,7 @@ class Modelo {
    */
   static async eliminarTelefonoCliente(id, telefono) {
     try {
-      await pool.query(
+      const res = await pool.query(
         `UPDATE clientes
          SET telefonos = JSON_REMOVE(
            telefonos, 
@@ -167,7 +174,9 @@ class Modelo {
          WHERE id = ?`,
         [telefono, id]
       );
-      return successResponse("Teléfono eliminado", 200, true);
+      return res.affectedRows === 1
+        ? successResponse("Teléfono eliminado", 200, true)
+        : successResponse("El clientes no existe", 404, false);
     } catch (error) {
       console.error("Error eliminarTelefonoCliente: " + error);
       throw successResponse("Error al eliminar el teléfono server-a");
@@ -181,8 +190,10 @@ class Modelo {
    */
   static async eliminarCliente(id) {
     try {
-      await pool.query("DELETE FROM clientes WHERE id = ?", [id]);
-      return successResponse("Cliente eliminado", 200, true);
+      const res = await pool.query("DELETE FROM clientes WHERE id = ?", [id]);
+      return res.affectedRows === 1
+        ? successResponse("Cliente eliminado", 200, true)
+        : successResponse("El clientes no existe", 404, false);
     } catch (error) {
       console.error("Error eliminarCliente: " + error);
       throw successResponse("Error al eliminar el cliente server-a");
