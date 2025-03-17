@@ -1,6 +1,8 @@
+import Joi from "joi";
 import grpc from "@grpc/grpc-js";
-import successResponse from "../seccess.js";
 import protoLoader from "@grpc/proto-loader";
+import successResponse from "../../utils/success.js";
+import { uuidSchema } from "../../utils/validarClientes.js";
 
 // Cargar el archivo proto y extraer el paquete "clientes"
 const packageDefinition = protoLoader.loadSync("./proto/clientes.proto");
@@ -13,25 +15,21 @@ const clientes = new proto.Clientes(
 );
 
 // Validar el formato UUID
-function validarDatos(id) {
-  if (!id) return "Falta el id: undefined";
-
-  const uuidRegex = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
-  return uuidRegex.test(id)
-    ? false
-    : `ID no válido: "${id}". Debe tener el formato UUID (8-4-4-4-12 caracteres hexadecimales con guiones).`;
-}
+const schema = Joi.object({
+  id: uuidSchema,
+});
 
 // Función para eliminar un cliente por su id
 function eliminarCliente(req, res) {
   const { id } = req.params;
-  const validacion = validarDatos(id);
+  const { error } = schema.validate({ id });
 
-  if (validacion) {
-    return res.status(400).json(successResponse(validacion, 400));
+  if (error) {
+    const message = successResponse(error.details[0].message, 400);
+    return res.status(message.header.status).json(message);
   }
 
-  clientes.DeleteEliminarCliente({ id }, (error, data) => {
+  clientes.EliminarCliente({ id }, (error, data) => {
     if (error) {
       console.error("Error en eliminarCliente:", error);
       return res
