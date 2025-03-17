@@ -1,12 +1,12 @@
+import Modelo from "./model.js";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import Modelo from "./model.js";
 
 // Cargar el archivo proto
 const packageDefinition = protoLoader.loadSync("./proto/clientes.proto");
 const proto = grpc.loadPackageDefinition(packageDefinition).clientes;
 
-async function getListClientes(_, callback) {
+async function listarClientes(_, callback) {
   try {
     const res = await Modelo.obtenerTodosLosClientes();
     callback(null, res);
@@ -15,7 +15,7 @@ async function getListClientes(_, callback) {
   }
 }
 
-async function getClientePorId(call, callback) {
+async function obtenerClientePorId(call, callback) {
   try {
     const res = await Modelo.obtenerClientePorId(call.request.id);
     callback(null, res);
@@ -24,7 +24,7 @@ async function getClientePorId(call, callback) {
   }
 }
 
-async function postCrearNuevoCliente(call, callback) {
+async function crearCliente(call, callback) {
   try {
     const res = await Modelo.crearNuevoCliente(
       call.request.nombre,
@@ -37,7 +37,7 @@ async function postCrearNuevoCliente(call, callback) {
   }
 }
 
-async function putActualizarDatosCliente(call, callback) {
+async function actualizarCliente(call, callback) {
   try {
     const res = await Modelo.actualizarDatosCliente(
       call.request.id,
@@ -49,7 +49,7 @@ async function putActualizarDatosCliente(call, callback) {
   }
 }
 
-async function putAgregarTelefonoCliente(call, callback) {
+async function agregarTelefonoCliente(call, callback) {
   try {
     const res = await Modelo.agregarTelefonoCliente(
       call.request.id,
@@ -61,7 +61,7 @@ async function putAgregarTelefonoCliente(call, callback) {
   }
 }
 
-async function deleteEliminarTelefonoCliente(call, callback) {
+async function eliminarTelefonoCliente(call, callback) {
   try {
     const res = await Modelo.eliminarTelefonoCliente(
       call.request.id,
@@ -73,7 +73,7 @@ async function deleteEliminarTelefonoCliente(call, callback) {
   }
 }
 
-async function deleteEliminarCliente(call, callback) {
+async function eliminarCliente(call, callback) {
   try {
     const res = await Modelo.eliminarCliente(call.request.id);
     callback(null, res);
@@ -82,16 +82,16 @@ async function deleteEliminarCliente(call, callback) {
   }
 }
 
-// Crear el servidor y registrar ambos métodos en el servicio "Clientes"
+// Crear el servidor y registrar los métodos en el servicio "Clientes"
 const server = new grpc.Server();
 server.addService(proto.Clientes.service, {
-  GetListClientes: getListClientes,
-  GetClientePorId: getClientePorId,
-  PostCrearNuevoCliente: postCrearNuevoCliente,
-  PutActualizarDatosCliente: putActualizarDatosCliente,
-  PutAgregarTelefonoCliente: putAgregarTelefonoCliente,
-  DeleteEliminarTelefonoCliente: deleteEliminarTelefonoCliente,
-  DeleteEliminarCliente: deleteEliminarCliente,
+  ListarClientes: listarClientes,
+  ObtenerClientePorId: obtenerClientePorId,
+  CrearCliente: crearCliente,
+  ActualizarCliente: actualizarCliente,
+  AgregarTelefonoCliente: agregarTelefonoCliente,
+  EliminarTelefonoCliente: eliminarTelefonoCliente,
+  EliminarCliente: eliminarCliente,
 });
 
 server.bindAsync(
