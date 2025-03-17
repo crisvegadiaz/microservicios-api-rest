@@ -1,16 +1,17 @@
 version: "3"
 
 services:
-  server-b:
-    image: mariadb:11
+  server-c:
+    image: postgres:16.8-alpine3.20
     container_name: db-server-c
     environment:
-      MARIADB_ROOT_PASSWORD: 12345
-      MARIADB_USER: user-c
-      MARIADB_PASSWORD: 12345
-      MARIADB_DATABASE: db-c
+      POSTGRES_USER: user-c
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: db-c
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - 3003:3306
+      - 3003:5432
     volumes:
-      - ./db-c:/var/lib/mysql:Z
+      - ./db-c:/var/lib/postgresql/data/pgdata:Z
       - ./c-init.sql:/docker-entrypoint-initdb.d/c-init.sql:Z
+

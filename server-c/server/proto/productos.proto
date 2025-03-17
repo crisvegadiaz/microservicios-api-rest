@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package productos;
+
+import "google/protobuf/empty.proto";
+
+message Producto {
+  string id = 1;
+  string nombre = 2;
+  double precio = 3;
+  int32 cantidad = 4;
+}
+
+message ResponseHeader {
+  string message = 1;
+  int32 status = 2;
+  bool success = 3;
+}
+
+message ListarProductosResponse {
+  ResponseHeader header = 1;
+  repeated Producto data = 2;
+}
+
+message ObtenerProductoPorIdRequest {
+  string id = 1;
+}
+
+message ObtenerProductoPorIdResponse {
+  ResponseHeader header = 1;
+  Producto data = 2;
+}
+message CrearProductoRequest {
+  string nombre = 1;
+  double precio = 2;
+  int32 cantidad = 3;
+}
+
+message CrearProductoResponse {
+  ResponseHeader header = 1;
+}
+
+message ActualizarProductoRequest {
+  string id = 1;
+  Producto data = 2;
+}
+
+message ActualizarProductoResponse {
+  ResponseHeader header = 1;
+}
+
+message EliminarProductoRequest {
+  string id = 1;
+}
+
+message EliminarProductoResponse {
+  ResponseHeader header = 1;
+}
+
+service Productos {
+  rpc ListarProductos(google.protobuf.Empty) returns (ListarProductosResponse) {}
+  rpc ObtenerProductoPorId(ObtenerProductoPorIdRequest) returns (ObtenerProductoPorIdResponse) {}
+  rpc CrearProducto(CrearProductoRequest) returns (CrearProductoResponse) {}
+  rpc ActualizarProducto(ActualizarProductoRequest) returns (ActualizarProductoResponse) {}
+  rpc EliminarProducto(EliminarProductoRequest) returns (EliminarProductoResponse) {}
+}

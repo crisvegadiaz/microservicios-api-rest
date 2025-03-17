@@ -1,6 +1,7 @@
 import express from "express";
 import errorRouter from "./router/error.routes.js";
 import clientesRouter from "./router/clientes.routes.js";
+import productosRouter from "./router/productos.routes.js";
 
 const app = express();
 const port = 3000;
@@ -10,9 +11,10 @@ app.use(express.json());
 
 // Routes
 app.use(clientesRouter);
+app.use(productosRouter);
 
 // Router Default
-app.use(errorRouter)
+app.use(errorRouter);
 
 app.listen(port, (error) => {
   if (error) {
