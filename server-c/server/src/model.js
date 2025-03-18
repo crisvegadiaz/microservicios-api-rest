@@ -94,7 +94,6 @@ class Modelo {
    * @returns {Object} Respuesta de éxito.
    */
   static async actualizarDatosProducto(id, data) {
-    console.log(id, data);
     const camposActualizacion = Object.keys(data)
       .map((key, index) => `${key} = $${index + 1}`)
       .join(", ");
@@ -141,5 +140,3 @@ class Modelo {
 }
 
 export default Modelo;
-
-// console.log(await Modelo.obtenerTodosLosProductos())

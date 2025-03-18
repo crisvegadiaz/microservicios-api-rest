@@ -12,30 +12,29 @@ import {
 const packageDefinition = protoLoader.loadSync("./proto/productos.proto");
 const proto = grpc.loadPackageDefinition(packageDefinition).productos;
 
-// Crear un cliente gRPC para el Servicio A
+// Crear un cliente gRPC para el Servicio C
 const productos = new proto.Productos(
   "localhost:50052",
   grpc.credentials.createInsecure()
 );
 
-//
-
+// Schema para validar los datos de entrada
 const schema = Joi.object({
   nombre: producTnameSchema.required(),
   precio: priceSchema.required(),
   cantidad: amountSchema.required(),
 });
 
-// Función para obtener clientes
+// Función crear un producto
 function crearNuevoProducto(req, res) {
-  const { error } = schema.validate();
+  const { error } = schema.validate(req.body);
 
   if (error) {
-    const messaje = successResponse("", 400);
-    return res.status(messaje.header.status).json(messaje);
+    const message = successResponse(error.details[0].message, 400);
+    return res.status(message.header.status).json(message);
   }
 
-  productos.CrearProducto({}, (error, data) => {
+  productos.CrearProducto(req.body, (error, data) => {
     if (error) {
       console.error("Error crearNuevoProducto: ", error);
       const messaje = successResponse(`Error al crear un productos api-rest`);

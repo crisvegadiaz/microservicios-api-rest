@@ -19,8 +19,8 @@ const schema = Joi.object({
   id: uuidSchema,
 });
 
-// Función para obtener producto
-function productoPorId(req, res) {
+// Función para eliminar producto
+function eliminarProducto(req, res) {
   const id = req.params;
   const { error } = schema.validate(id);
 
@@ -29,16 +29,16 @@ function productoPorId(req, res) {
     return res.status(message.header.status).json(message);
   }
 
-  productos.ObtenerProductoPorId(id, (error, data) => {
+  productos.EliminarProducto(id, (error, data) => {
     if (error) {
-      console.error("Error productoPorId: ", error);
+      console.error("Error eliminarProducto: ", error);
       return res
         .status(500)
-        .json(successResponse(`Error al obtener el producto api-rest`));
+        .json(successResponse(`Error al eliminar el producto api-rest`));
     }
     const status = data?.header?.status || 200;
     return res.status(status).json(data);
   });
 }
 
-export default productoPorId;
+export default eliminarProducto;
