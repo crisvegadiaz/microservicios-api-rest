@@ -34,7 +34,7 @@ function crearNuevoCliente(req, res) {
     return res.status(message.header.status).json(message);
   }
 
-  clientes.CrearCliente({ ...req.body }, (error, data) => {
+  clientes.CrearCliente(req.body, (error, data) => {
     if (error) {
       console.error("Error crearNuevoCliente:", error);
       return res

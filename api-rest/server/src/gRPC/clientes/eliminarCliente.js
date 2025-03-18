@@ -21,15 +21,15 @@ const schema = Joi.object({
 
 // Función para eliminar un cliente por su id
 function eliminarCliente(req, res) {
-  const { id } = req.params;
-  const { error } = schema.validate({ id });
+  const id = req.params;
+  const { error } = schema.validate(id);
 
   if (error) {
     const message = successResponse(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
-  clientes.EliminarCliente({ id }, (error, data) => {
+  clientes.EliminarCliente(id, (error, data) => {
     if (error) {
       console.error("Error en eliminarCliente:", error);
       return res

@@ -9,7 +9,7 @@ import {
   phoneSchema,
 } from "../../utils/validarClientes.js";
 
-// Cargar el archivo proto y extraer el paquete "clientes"
+// Cargar el archivo proto
 const packageDefinition = protoLoader.loadSync("./proto/clientes.proto");
 const proto = grpc.loadPackageDefinition(packageDefinition).clientes;
 
