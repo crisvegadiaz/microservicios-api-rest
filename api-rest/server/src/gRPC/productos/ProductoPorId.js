@@ -1,7 +1,7 @@
 import Joi from "joi";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import successResponse from "../../utils/success.js";
+import response from "../../utils/response.js";
 import { uuidSchema } from "../../utils/validarProductos.js";
 
 // Cargar el archivo proto
@@ -25,7 +25,7 @@ function productoPorId(req, res) {
   const { error } = schema.validate(id);
 
   if (error) {
-    const message = successResponse(error.details[0].message, 400);
+    const message = response(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
@@ -34,7 +34,7 @@ function productoPorId(req, res) {
       console.error("Error productoPorId: ", error);
       return res
         .status(500)
-        .json(successResponse(`Error al obtener el producto api-rest`));
+        .json(response(`Error al obtener el producto api-rest`));
     }
     const status = data?.header?.status || 200;
     return res.status(status).json(data);

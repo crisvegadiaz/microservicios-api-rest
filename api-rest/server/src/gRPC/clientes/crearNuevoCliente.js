@@ -1,7 +1,7 @@
 import Joi from "joi";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import successResponse from "../../utils/success.js";
+import response from "../../utils/response.js";
 import {
   usernameSchema,
   emailSchema,
@@ -30,7 +30,7 @@ function crearNuevoCliente(req, res) {
   const { error } = schema.validate(req.body);
 
   if (error) {
-    const message = successResponse(error.details[0].message, 400);
+    const message = response(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
@@ -39,7 +39,7 @@ function crearNuevoCliente(req, res) {
       console.error("Error crearNuevoCliente:", error);
       return res
         .status(500)
-        .json(successResponse("Error al crear un cliente api-rest"));
+        .json(response("Error al crear un cliente api-rest"));
     }
 
     const status = data?.header?.status || 200;

@@ -1,7 +1,7 @@
 import Joi from "joi";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import successResponse from "../../utils/success.js";
+import response from "../../utils/response.js";
 import { uuidSchema, phoneSchema } from "../../utils/validarClientes.js";
 
 // Cargar el archivo proto y extraer el paquete "clientes"
@@ -27,7 +27,7 @@ function agregarTelefonoCliente(req, res) {
   const { error } = schema.validate({ id, telefono });
 
   if (error) {
-    const message = successResponse(error.details[0].message, 400);
+    const message = response(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
@@ -36,7 +36,7 @@ function agregarTelefonoCliente(req, res) {
       console.error("Error agregarTelefonoCliente:", error);
       return res
         .status(500)
-        .json(successResponse("Error al actualizar un cliente api-rest"));
+        .json(response("Error al actualizar un cliente api-rest"));
     }
     const status = data?.header?.status || 200;
     return res.status(status).json(data);

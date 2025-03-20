@@ -1,4 +1,4 @@
-export default function successResponse(
+export default function response(
   message,
   status = 500,
   success = false,

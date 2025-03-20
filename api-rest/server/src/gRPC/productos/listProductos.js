@@ -1,5 +1,5 @@
 import grpc from "@grpc/grpc-js";
-import successResponse from "../../utils/success.js";
+import response from "../../utils/response.js";
 import protoLoader from "@grpc/proto-loader";
 
 // Cargar el archivo proto
@@ -20,7 +20,7 @@ function listProductos(_, res) {
       return res
         .status(500)
         .json(
-          successResponse(`Error al obtener la lista de productos api-rest`)
+          response(`Error al obtener la lista de productos api-rest`)
         );
     }
     const status = data?.header?.status || 200;
