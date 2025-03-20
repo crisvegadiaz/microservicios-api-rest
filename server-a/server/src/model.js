@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Respuestas estándar de éxito y error
-function successResponse(
+function response(
   message,
   status = 503,
   success = false,
@@ -13,6 +13,7 @@ function successResponse(
   return { header: { message, status, success }, data };
 }
 
+// Cambiar formato de la fechas
 function fecha(cliente) {
   let f = {
     year: "numeric",
@@ -27,6 +28,12 @@ function fecha(cliente) {
   cliente.updatedAt = cliente.updated_at.toLocaleString("es-ES", f);
   delete cliente.created_at;
   delete cliente.updated_at;
+}
+
+// Validacion de las variables de entorno.
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PORT || !process.env.DB_NAME || !process.env.DB_PASSWORD) {
+  console.error("Error: Variables de entorno de la base de datos no configuradas.");
+  process.exit(1);
 }
 
 // Configuración del pool de conexiones a la base de datos
@@ -47,18 +54,18 @@ class Modelo {
    */
   static async obtenerTodosLosClientes() {
     try {
-      const res = await pool.query("SELECT * FROM clientes");
+      const res = await pool.query("SELECT * FROM pedidos");
 
       if (res.length === 0) {
-        return successResponse("No hay clientes", 404, false);
+        return response("No hay clientes", 404, false);
       }
 
       res.forEach((cliente) => fecha(cliente));
 
-      return successResponse("Clientes obtenidos", 200, true, res);
+      return response("Clientes obtenidos", 200, true, res);
     } catch (error) {
       console.error("Error obtenerTodosLosClientes: " + error);
-      throw successResponse("Error al obtener todos los clientes server-a");
+      throw response("Error al obtener todos los clientes server-a");
     }
   }
 
@@ -74,15 +81,15 @@ class Modelo {
       ]);
 
       if (!res) {
-        return successResponse("Cliente no encontrado", 404, false);
+        return response("Cliente no encontrado", 404, false);
       }
 
       fecha(res);
 
-      return successResponse("Cliente obtenido", 200, true, res);
+      return response("Cliente obtenido", 200, true, res);
     } catch (error) {
       console.error("Error obtenerClientePorId: " + error);
-      throw successResponse("Error al obtener el cliente server-a");
+      throw response("Error al obtener el cliente server-a");
     }
   }
 
@@ -100,10 +107,10 @@ class Modelo {
          VALUES (?, ?, JSON_ARRAY(?))`,
         [nombre, email, telefono]
       );
-      return successResponse("Cliente creado", 200, true);
+      return response("Cliente creado", 200, true);
     } catch (error) {
       console.error("Error crearNuevoCliente: " + error);
-      throw successResponse("Error al crear el cliente server-a");
+      throw response("Error al crear el cliente server-a");
     }
   }
 
@@ -131,11 +138,11 @@ class Modelo {
       );
 
       return affectedRows === 1
-        ? successResponse("Cliente actualizado", 200, true)
-        : successResponse("El cliente no existe", 404, false);
+        ? response("Cliente actualizado", 200, true)
+        : response("El cliente no existe", 404, false);
     } catch (error) {
       console.error("Error actualizarDatosCliente: " + error);
-      throw successResponse(
+      throw response(
         "Error al actualizar el cliente en el servidor server-a",
         500,
         false
@@ -159,11 +166,11 @@ class Modelo {
       );
 
       return affectedRows === 0
-        ? successResponse("El clientes no existe", 404, false)
-        : successResponse("Teléfono agregado", 200, true);
+        ? response("El clientes no existe", 404, false)
+        : response("Teléfono agregado", 200, true);
     } catch (error) {
       console.error("Error agregarTelefonoCliente: " + error);
-      throw successResponse("Error al agregar el teléfon server-a");
+      throw response("Error al agregar el teléfon server-a");
     }
   }
 
@@ -185,11 +192,11 @@ class Modelo {
         [telefono, id]
       );
       return affectedRows === 0
-        ? successResponse("El clientes no existe", 404, false)
-        : successResponse("Teléfono eliminado", 200, true);
+        ? response("El clientes no existe", 404, false)
+        : response("Teléfono eliminado", 200, true);
     } catch (error) {
       console.error("Error eliminarTelefonoCliente: " + error);
-      throw successResponse("Error al eliminar el teléfono server-a");
+      throw response("Error al eliminar el teléfono server-a");
     }
   }
 
@@ -205,11 +212,11 @@ class Modelo {
         [id]
       );
       return affectedRows === 0
-        ? successResponse("El clientes no existe", 404, false)
-        : successResponse("Cliente eliminado", 200, true);
+        ? response("El clientes no existe", 404, false)
+        : response("Cliente eliminado", 200, true);
     } catch (error) {
       console.error("Error eliminarCliente: " + error);
-      throw successResponse("Error al eliminar el cliente server-a");
+      throw response("Error al eliminar el cliente server-a");
     }
   }
 }
