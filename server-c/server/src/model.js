@@ -4,13 +4,19 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Respuestas estándar de éxito y error
-function successResponse(
+function response(
   message,
   status = 503,
   success = false,
   data = undefined
 ) {
   return { header: { message, status, success }, data };
+}
+
+//Validacion de las variables de entorno.
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PORT || !process.env.DB_NAME || !process.env.DB_PASSWORD) {
+  console.error("Error: Variables de entorno de la base de datos no configuradas.");
+  process.exit(1);
 }
 
 // Configuración del pool de conexiones a la base de datos
@@ -24,7 +30,7 @@ const pool = new pg.Pool({
   idleTimeoutMillis: 30000,
 });
 
-//
+
 class Modelo {
   /**
    * Obtiene todos los Productos.
@@ -36,11 +42,11 @@ class Modelo {
 
       console.log(rowCount);
       return rowCount === 0
-        ? successResponse("No hay Productos", 404, false)
-        : successResponse("Productos obtenidos", 200, true, rows);
+        ? response("No hay Productos", 404, false)
+        : response("Productos obtenidos", 200, true, rows);
     } catch (error) {
       console.error("Error en obtenerTodosLosProductos:", error);
-      throw successResponse("Error al obtener todos los productos server-c");
+      throw response("Error al obtener todos los productos server-c");
     }
   }
 
@@ -57,11 +63,11 @@ class Modelo {
       );
 
       return rowCount === 0
-        ? successResponse("El Producto no existe", 404, false, undefined)
-        : successResponse("Producto obtenido", 200, true, rows[0]);
+        ? response("El Producto no existe", 404, false, undefined)
+        : response("Producto obtenido", 200, true, rows[0]);
     } catch (error) {
       console.error("Error en obtenerProductoPorId:", error);
-      throw successResponse("Error al obtener el producto server-c");
+      throw response("Error al obtener el producto server-c");
     }
   }
 
@@ -80,10 +86,10 @@ class Modelo {
         [nombre, precio, cantidad]
       );
 
-      return successResponse("Producto creado", 200, true);
+      return response("Producto creado", 200, true);
     } catch (error) {
       console.error("Error en crearNuevoProducto:", error);
-      throw successResponse("Error al crear el producto server-c");
+      throw response("Error al crear el producto server-c");
     }
   }
 
@@ -109,11 +115,11 @@ class Modelo {
 
       console.log(rowCount);
       return rowCount === 0
-        ? successResponse("El Producto no existe", 404, false)
-        : successResponse("Producto actualizado", 200, true);
+        ? response("El Producto no existe", 404, false)
+        : response("Producto actualizado", 200, true);
     } catch (error) {
       console.error("Error en actualizarDatosProducto:", error);
-      throw successResponse("Error al actualizar el producto server-c");
+      throw response("Error al actualizar el producto server-c");
     }
   }
 
@@ -130,11 +136,11 @@ class Modelo {
       );
 
       return rowCount === 0
-        ? successResponse("El Producto no existe", 404, false)
-        : successResponse("Producto eliminado", 200, true);
+        ? response("El Producto no existe", 404, false)
+        : response("Producto eliminado", 200, true);
     } catch (error) {
       console.error("Error en eliminarProducto:", error);
-      throw successResponse("Error al eliminar el producto server-c");
+      throw response("Error al eliminar el producto server-c");
     }
   }
 }
