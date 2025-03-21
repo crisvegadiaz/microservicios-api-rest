@@ -4,12 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Respuestas estándar de éxito y error
-function response(
-  message,
-  status = 503,
-  success = false,
-  data = undefined
-) {
+function response(message, status = 503, success = false, data = undefined) {
   return { header: { message, status, success }, data };
 }
 
@@ -31,8 +26,16 @@ function fecha(cliente) {
 }
 
 // Validacion de las variables de entorno.
-if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PORT || !process.env.DB_NAME || !process.env.DB_PASSWORD) {
-  console.error("Error: Variables de entorno de la base de datos no configuradas.");
+if (
+  !process.env.DB_HOST ||
+  !process.env.DB_USER ||
+  !process.env.DB_PORT ||
+  !process.env.DB_NAME ||
+  !process.env.DB_PASSWORD
+) {
+  console.error(
+    "Error: Variables de entorno de la base de datos no configuradas."
+  );
   process.exit(1);
 }
 
