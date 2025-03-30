@@ -1,11 +1,11 @@
 import { Router } from "express";
-import listClientes from "../gRPC/clientes/listClientes.js";
-import clientePorId from "../gRPC/clientes/clientePorId.js";
-import crearNuevoCliente from "../gRPC/clientes/crearNuevoCliente.js";
-import actualizarDatosCliente from "../gRPC/clientes/actualizarDatosCliente.js";
-import agregarTelefonoCliente from "../gRPC/clientes/agregarTelefonoCliente.js";
-import eliminarTelefonoCliente from "../gRPC/clientes/eliminarTelefonoCliente.js";
-import eliminarCliente from "../gRPC/clientes/eliminarCliente.js";
+import listClientes from "../grpc/clientes/listClientes.js";
+import clientePorId from "../grpc/clientes/clientePorId.js";
+import crearNuevoCliente from "../grpc/clientes/crearNuevoCliente.js";
+import actualizarDatosCliente from "../grpc/clientes/actualizarDatosCliente.js";
+import agregarTelefonoCliente from "../grpc/clientes/agregarTelefonoCliente.js";
+import eliminarTelefonoCliente from "../grpc/clientes/eliminarTelefonoCliente.js";
+import eliminarCliente from "../grpc/clientes/eliminarCliente.js";
 
 const clientesRouter = Router();
 

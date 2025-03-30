@@ -1,9 +1,9 @@
 import { Router } from "express";
-import listProductos from "../gRPC/productos/listProductos.js";
-import productoPorId from "../gRPC/productos/ProductoPorId.js";
-import crearNuevoProducto from "../gRPC/productos/crearNuevoProducto.js";
-import actualizarDatosProducto from "../gRPC/productos/actualizarDatosProducto.js";
-import eliminarProducto from "../gRPC/productos/eliminarProducto.js";
+import listProductos from "../grpc/productos/listProductos.js";
+import productoPorId from "../grpc/productos/ProductoPorId.js";
+import crearNuevoProducto from "../grpc/productos/crearNuevoProducto.js";
+import actualizarDatosProducto from "../grpc/productos/actualizarDatosProducto.js";
+import eliminarProducto from "../grpc/productos/eliminarProducto.js";
 
 const productosRouter = Router();
 
