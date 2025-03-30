@@ -58,6 +58,51 @@ async function eliminarProducto(call, callback) {
   }
 }
 
+async function productoExiste(call, callback) {
+  try {
+    const res = await Modelo.productoExiste(call.request.id);
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
+async function revisarCantidadProducto(call, callback) {
+  try {
+    const res = await Modelo.revisarCantidadProducto(
+      call.request.id,
+      call.request.cantidad
+    );
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
+async function restarCantidadProducto(call, callback) {
+  try {
+    const res = await Modelo.restarCantidadProducto(
+      call.request.id,
+      call.request.cantidad
+    );
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
+async function sumarCantidadProducto(call, callback) {
+  try {
+    const res = await Modelo.sumarCantidadProducto(
+      call.request.id,
+      call.request.cantidad
+    );
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
 // Crear el servidor y registrar ambos métodos en el servicio "Productos"
 const server = new grpc.Server();
 server.addService(proto.Productos.service, {
@@ -65,7 +110,15 @@ server.addService(proto.Productos.service, {
   ObtenerProductoPorId: obtenerProductoPorId,
   CrearProducto: crearProducto,
   ActualizarProducto: actualizarProducto,
-  EliminarProducto: eliminarProducto
+  EliminarProducto: eliminarProducto,
+});
+
+server.addService(proto.ProductosPedidos.service, {
+  ObtenerProductoPorId: obtenerProductoPorId,
+  ProductoExiste: productoExiste,
+  RevisarCantidadProducto: revisarCantidadProducto,
+  RestarCantidadProducto: restarCantidadProducto,
+  SumarCantidadProducto: sumarCantidadProducto,
 });
 
 server.bindAsync(

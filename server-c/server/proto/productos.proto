@@ -64,3 +64,48 @@ service Productos {
   rpc ActualizarProducto(ActualizarProductoRequest) returns (ActualizarProductoResponse) {}
   rpc EliminarProducto(EliminarProductoRequest) returns (EliminarProductoResponse) {}
 }
+
+message ProductoExisteRequest {
+  string id = 1;
+}
+
+message ProductoExisteResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+message RevisarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message RevisarCantidadProductoResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+message RestarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message RestarCantidadProductoResponse {
+  ResponseHeader header = 1;
+}
+
+message SumarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message SumarCantidadProductoResponse {
+  ResponseHeader header = 1;
+}
+
+service ProductosPedidos {
+  rpc ObtenerProductoPorId(ObtenerProductoPorIdRequest) returns (ObtenerProductoPorIdResponse) {}
+  rpc ProductoExiste(ProductoExisteRequest) returns (ProductoExisteResponse) {}
+  rpc RevisarCantidadProducto(RevisarCantidadProductoRequest) returns (RevisarCantidadProductoResponse) {}
+  rpc RestarCantidadProducto(RestarCantidadProductoRequest) returns (RestarCantidadProductoResponse) {}
+  rpc SumarCantidadProducto(SumarCantidadProductoRequest) returns (SumarCantidadProductoResponse) {}
+}
