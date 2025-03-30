@@ -92,4 +92,28 @@ service Clientes {
   rpc AgregarTelefonoCliente(AgregarTelefonoClienteRequest) returns (AgregarTelefonoClienteResponse) {}
   rpc EliminarTelefonoCliente(EliminarTelefonoClienteRequest) returns (EliminarTelefonoClienteResponse) {}
   rpc EliminarCliente(EliminarClienteRequest) returns (EliminarClienteResponse) {}
+  rpc ClienteExiste(ClienteExisteRequest) returns (ClienteExisteResponse) {}
+}
+
+message ClienteExisteRequest {
+  string id = 1;
+}
+
+message ClienteExisteResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+message NombreClienteRequest {
+  string id = 1;
+}
+
+message NombreClienteResponse {
+  ResponseHeader header = 1;
+  string data = 2;
+}
+
+service ClientesPedidos {
+  rpc ClienteExiste(ClienteExisteRequest) returns (ClienteExisteResponse) {}
+  rpc NombreCliente(NombreClienteRequest) returns (NombreClienteResponse) {}
 }

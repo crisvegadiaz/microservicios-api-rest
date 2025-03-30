@@ -82,6 +82,24 @@ async function eliminarCliente(call, callback) {
   }
 }
 
+async function clienteExiste(call, callback) {
+  try {
+    const res = await Modelo.clienteExiste(call.request.id);
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
+async function nombreCliente(call, callback) {
+  try {
+    const res = await Modelo.nombreCliente(call.request.id);
+    callback(null, res);
+  } catch (error) {
+    callback(null, error);
+  }
+}
+
 // Crear el servidor y registrar los métodos en el servicio "Clientes"
 const server = new grpc.Server();
 server.addService(proto.Clientes.service, {
@@ -92,6 +110,11 @@ server.addService(proto.Clientes.service, {
   AgregarTelefonoCliente: agregarTelefonoCliente,
   EliminarTelefonoCliente: eliminarTelefonoCliente,
   EliminarCliente: eliminarCliente,
+});
+
+server.addService(proto.ClientesPedidos.service, {
+  ClienteExiste: clienteExiste,
+  NombreCliente: nombreCliente,
 });
 
 server.bindAsync(

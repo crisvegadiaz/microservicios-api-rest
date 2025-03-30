@@ -40,24 +40,34 @@ if (
 }
 
 // Configuración del pool de conexiones a la base de datos
-const pool = mariadb.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  connectionLimit: 5,
-  acquireTimeout: 30000,
-});
+let pool;
+
+function createPool() {
+  pool = mariadb.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    connectionLimit: 5,
+    acquireTimeout: 30000,
+  });
+
+  pool.on("error", (err) => {
+    console.error("Error inesperado en la conexión de Mariadb:", err);
+  });
+}
+
+createPool();
 
 class Modelo {
   /**
    * Obtiene todos los clientes.
-   * @returns {Promise<Array>} Lista de clientes.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async obtenerTodosLosClientes() {
     try {
-      const res = await pool.query("SELECT * FROM pedidos");
+      const res = await pool.query("SELECT * FROM clientes");
 
       if (res.length === 0) {
         return response("No hay clientes", 404, false);
@@ -75,7 +85,7 @@ class Modelo {
   /**
    * Obtiene un cliente por su ID.
    * @param {string} id - ID del cliente.
-   * @returns {Promise<Object>} Cliente encontrado.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async obtenerClientePorId(id) {
     try {
@@ -101,7 +111,7 @@ class Modelo {
    * @param {string} nombre - Nombre del cliente.
    * @param {string} email - Email del cliente.
    * @param {string} telefono - Teléfonos del cliente.
-   * @returns {Object} Respuesta de éxito.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async crearNuevoCliente(nombre, email, telefono) {
     try {
@@ -121,7 +131,7 @@ class Modelo {
    * Actualiza los datos de un cliente.
    * @param {string} id - ID del cliente.
    * @param {Object} data - Datos a actualizar.
-   * @returns {Object} Respuesta de éxito.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async actualizarDatosCliente(id, data) {
     if (data.telefono) {
@@ -133,11 +143,12 @@ class Modelo {
       .map((key) => `${key} = ?`)
       .join(", ");
     const valores = Object.values(data);
+    const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     try {
       const { affectedRows } = await pool.query(
-        `UPDATE clientes SET ${camposActualizacion} WHERE id = ?`,
-        [...valores, id]
+        `UPDATE clientes SET ${camposActualizacion} updated_at = ? WHERE id = ?`,
+        [...valores, updatedAt, id]
       );
 
       return affectedRows === 1
@@ -157,7 +168,7 @@ class Modelo {
    * Agrega un teléfono al cliente.
    * @param {string} id - ID del cliente.
    * @param {string} telefono - Teléfono a agregar.
-   * @returns {Object} Respuesta de éxito.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async agregarTelefonoCliente(id, telefono) {
     try {
@@ -181,7 +192,7 @@ class Modelo {
    * Elimina un teléfono del cliente.
    * @param {number} id - ID del cliente.
    * @param {string} telefono - Teléfono a eliminar.
-   * @returns {Object} Respuesta de éxito.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async eliminarTelefonoCliente(id, telefono) {
     try {
@@ -206,7 +217,7 @@ class Modelo {
   /**
    * Elimina un cliente.
    * @param {string} id - ID del cliente.
-   * @returns {Object} Respuesta de éxito.
+   * @returns {Promise<Object>} Respuesta de éxito
    */
   static async eliminarCliente(id) {
     try {
@@ -220,6 +231,45 @@ class Modelo {
     } catch (error) {
       console.error("Error eliminarCliente: " + error);
       throw response("Error al eliminar el cliente server-a");
+    }
+  }
+
+  /**
+   * Verifica si un cliente existe.
+   * @param {string} id - ID del cliente.
+   * @returns {object} Respuesta de éxito.
+   */
+  static async clienteExiste(id) {
+    try {
+      const [{ existe }] = await pool.query(
+        "SELECT EXISTS(SELECT 1 FROM clientes WHERE id = ?) AS existe",
+        [id]
+      );
+      return response("Cliente verificado", 200, true, existe === 1);
+    } catch (error) {
+      console.error("Error clienteExiste: " + error);
+      throw response("Error al verificar si el cliente existe server-a");
+    }
+  }
+
+  /**
+   * Obtiene el nombre de un cliente.
+   * @param {string} id - ID del cliente.
+   * @returns {Promise<Object>} Respuesta de éxito
+   */
+  static async nombreCliente(id) {
+    try {
+      const [{ nombre }] = await pool.query(
+        "SELECT nombre FROM clientes WHERE id = ?",
+        [id]
+      );
+
+      return !nombre
+        ? response("Cliente no encontrado", 404, false)
+        : response("Cliente obtenido", 200, true, nombre);
+    } catch (error) {
+      console.error("Error obtenerClientePorId: " + error);
+      throw response("Error al obtener el cliente server-a");
     }
   }
 }
