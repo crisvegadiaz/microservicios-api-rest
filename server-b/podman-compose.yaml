@@ -2,13 +2,13 @@ version: "3"
 
 services:
   server-b:
-    image: mysql:lts-oraclelinux9 
+    image: mysql:lts
     container_name: db-server-b
     environment:
-      MARIADB_ROOT_PASSWORD: 12345
-      MARIADB_USER: user-b
-      MARIADB_PASSWORD: 12345
-      MARIADB_DATABASE: db-b
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_USER: user-b
+      MYSQL_PASSWORD: 12345
+      MYSQL_DATABASE: db-b
     ports:
       - 3002:3306
     volumes:

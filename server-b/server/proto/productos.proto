@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package productos;
+
+import "google/protobuf/empty.proto";
+
+message Producto {
+  string id = 1;
+  string nombre = 2;
+  double precio = 3;
+  int32 cantidad = 4;
+}
+
+message ResponseHeader {
+  string message = 1;
+  int32 status = 2;
+  bool success = 3;
+}
+
+message ObtenerProductoPorIdRequest {
+  string id = 1;
+}
+
+message ObtenerProductoPorIdResponse {
+  ResponseHeader header = 1;
+  Producto data = 2;
+}
+
+message ProductoExisteRequest {
+  string id = 1;
+}
+
+message ProductoExisteResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+message RevisarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message RevisarCantidadProductoResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+message RestarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message RestarCantidadProductoResponse {
+  ResponseHeader header = 1;
+}
+
+message SumarCantidadProductoRequest {
+  string id = 1;
+  int32 cantidad = 2;
+}
+
+message SumarCantidadProductoResponse {
+  ResponseHeader header = 1;
+}
+
+service ProductosPedidos {
+  rpc ObtenerProductoPorId(ObtenerProductoPorIdRequest) returns (ObtenerProductoPorIdResponse) {}
+  rpc ProductoExiste(ProductoExisteRequest) returns (ProductoExisteResponse) {}
+  rpc RevisarCantidadProducto(RevisarCantidadProductoRequest) returns (RevisarCantidadProductoResponse) {}
+  rpc RestarCantidadProducto(RestarCantidadProductoRequest) returns (RestarCantidadProductoResponse) {}
+  rpc SumarCantidadProducto(SumarCantidadProductoRequest) returns (SumarCantidadProductoResponse) {}
+}
