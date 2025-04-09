@@ -1,22 +1,11 @@
 import Joi from "joi";
-import grpc from "@grpc/grpc-js";
 import response from "../../utils/response.js";
-import protoLoader from "@grpc/proto-loader";
+import productos from "../../utils/grpcConfigProductos.js";
 import {
   producTnameSchema,
   priceSchema,
   amountSchema,
 } from "../../utils/validarProductos.js";
-
-// Cargar el archivo proto
-const packageDefinition = protoLoader.loadSync("./proto/productos.proto");
-const proto = grpc.loadPackageDefinition(packageDefinition).productos;
-
-// Crear un cliente gRPC para el Servicio C
-const productos = new proto.Productos(
-  "localhost:50052",
-  grpc.credentials.createInsecure()
-);
 
 // Schema para validar los datos de entrada
 const schema = Joi.object({

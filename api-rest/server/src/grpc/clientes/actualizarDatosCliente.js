@@ -1,23 +1,12 @@
 import Joi from "joi";
-import grpc from "@grpc/grpc-js";
-import protoLoader from "@grpc/proto-loader";
 import response from "../../utils/response.js";
+import clientes from "../../utils/grpcConfigClientes.js";
 import {
   uuidSchema,
   usernameSchema,
   emailSchema,
   phoneSchema,
 } from "../../utils/validarClientes.js";
-
-// Cargar el archivo proto
-const packageDefinition = protoLoader.loadSync("./proto/clientes.proto");
-const proto = grpc.loadPackageDefinition(packageDefinition).clientes;
-
-// Crear un cliente gRPC para el Servicio A
-const clientes = new proto.Clientes(
-  "localhost:50050",
-  grpc.credentials.createInsecure()
-);
 
 // Schema para validar los datos de entrada
 const schema = Joi.object({
