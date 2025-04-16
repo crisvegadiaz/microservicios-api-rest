@@ -10,11 +10,10 @@ const clientes = new proto.ClientesPedidos(
   grpc.credentials.createInsecure()
 );
 
-export function clienteExiste(id) {
+export function clienteExiste(clienteId) {
   return new Promise((resolve, reject) => {
-    clientes.ClienteExiste({ id }, (error, res) => {
+    clientes.ClienteExiste({ clienteId }, (error, res) => {
       if (!error) {
-        console.log("clienteExiste: ", res);
         resolve(res);
       } else {
         console.error("Error clienteExiste: ", error);
@@ -24,9 +23,9 @@ export function clienteExiste(id) {
   });
 }
 
-export function nombreCliente(id) {
+export function nombreCliente(clienteId) {
   return new Promise((resolve, reject) => {
-    clientes.NombreCliente({ id }, (error, res) => {
+    clientes.NombreCliente({ clienteId }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -36,3 +35,13 @@ export function nombreCliente(id) {
     });
   });
 }
+
+
+// (async () => {
+//   try {
+//     const res = await nombreCliente("1a546ef7-f445-11ef-94f8-b64139c65e8a");
+//     console.log(res);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })();

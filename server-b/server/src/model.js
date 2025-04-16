@@ -9,14 +9,8 @@ import {
   restarCantidadProducto,
   sumarCantidadProducto,
 } from "./grpc/productos.js";
-import { watch } from "fs";
 
 dotenv.config();
-
-// Función para generar respuestas estándar.
-function response(message, status = 503, success = false, data = undefined) {
-  return { header: { message, status, success }, data };
-}
 
 // Validación de las variables de entorno.
 if (
@@ -45,6 +39,10 @@ function createPool() {
 }
 createPool();
 
+// Definición de caches para evitar llamadas repetitivas a GRPC.
+const clienteCache = new Map();
+const productoCache = new Map();
+
 class Modelo {
   /**
    * Obtiene todos los Pedidos.
@@ -54,75 +52,37 @@ class Modelo {
     try {
       const [rows] = await pool.query(
         `SELECT
-          pc.cliente_id,
-          pc.estado,
-          pc.created_at,
-          pc.updated_at,
-          IFNULL(
-              JSON_ARRAYAGG(
-                  JSON_OBJECT(
-                      'producto_id', pp.producto_id,
-                      'cantidad', pp.cantidad
-                  )
-              ),
-              JSON_ARRAY()
-          ) AS productos
-        FROM
-          pedidos AS pc
-        LEFT JOIN
-          pedido_productos AS pp ON pc.id = pp.pedido_id
-        GROUP BY
-          pc.cliente_id, pc.estado, pc.created_at, pc.updated_at`
+        pc.pedidoId,
+        pc.clienteId,
+        pc.estado,
+        pc.createdAt,
+        pc.updatedAt,
+        IFNULL(
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'productoId', pp.productoId,
+                    'cantidad', pp.cantidad
+                )
+            ),
+            JSON_ARRAY()
+        ) AS productos
+        FROM pedidos AS pc
+        LEFT JOIN pedido_productos AS pp ON pc.pedidoId = pp.pedidoId
+        GROUP BY pc.pedidoId;`
       );
 
-      // Caché para evitar múltiples llamadas a servicios externos.
-      const clienteCache = new Map();
-      const productoCache = new Map();
-
-      // Procesar cada pedido y enriquecerlo con la información del cliente y de los productos.
-      const pedidosConDatos = await Promise.all(
-        rows.map(async (row) => {
-          // Obtener nombre del cliente usando caché.
-          if (!clienteCache.has(row.cliente_id)) {
-            const resCliente = await nombreCliente(row.cliente_id);
-            clienteCache.set(row.cliente_id, resCliente.data);
-          }
-          row.nombre = clienteCache.get(row.cliente_id);
-
-          // Validar que 'productos' sea un arreglo.
-          if (!Array.isArray(row.productos)) {
-            row.productos = [];
-          }
-
-          // Enriquecer cada producto con nombre y precio usando caché.
-          row.productos = await Promise.all(
-            row.productos.map(async (producto) => {
-              if (!productoCache.has(producto.producto_id)) {
-                const resProducto = await obtenerProductoPorId(
-                  producto.producto_id
-                );
-                productoCache.set(producto.producto_id, resProducto.data);
-              }
-              const productoData = productoCache.get(producto.producto_id);
-              producto.nombre = productoData.nombre;
-              producto.precioIndividual = productoData.precio;
-              return producto;
-            })
-          );
-
-          return row;
+      const list = await Promise.all(
+        rows.map(async (pedido) => {
+          const clienteRes = await this.#obtenerCliente(pedido.clienteId);
+          pedido.productos = await this.#procesarProductos(pedido.productos);
+          return { nombre: clienteRes.data, ...pedido };
         })
       );
 
-      return response(
-        "Pedidos obtenidos correctamente",
-        200,
-        true,
-        pedidosConDatos
-      );
+      return this.#response("Pedidos obtenidos correctamente", 200, true, list);
     } catch (error) {
       console.error("Error en obtenerTodosLosPedidos:", error);
-      throw response("Error al obtener todos los pedidos", 500, false);
+      throw this.#response("Error al obtener todos los pedidos", 500, false);
     }
   }
 
@@ -136,76 +96,56 @@ class Modelo {
       const [rows] = await pool.query(
         `SELECT
           pc.estado,
-          pc.created_at,
-          pc.updated_at,
+          pc.pedidoId,
+          pc.createdAt,
+          pc.updatedAt,
           IFNULL(
               JSON_ARRAYAGG(
                   JSON_OBJECT(
-                      'producto_id', pp.producto_id,
+                      'productoId', pp.productoId,
                       'cantidad', pp.cantidad
                   )
               ),
               JSON_ARRAY()
           ) AS productos
-        FROM
-          pedidos AS pc
-        LEFT JOIN
-          pedido_productos AS pp ON pc.id = pp.pedido_id
-        WHERE pc.cliente_id = ?
-        GROUP BY
-          pc.cliente_id, pc.estado, pc.created_at, pc.updated_at`,
+        FROM pedidos AS pc
+        LEFT JOIN pedido_productos AS pp ON pc.pedidoId = pp.pedidoId
+        WHERE pc.clienteId = ?
+        GROUP BY pc.pedidoId;`,
         [clienteId]
       );
 
-      // Validar si se encontraron pedidos.
       if (rows.length === 0) {
-        return response(
+        return this.#response(
           "No se encontraron pedidos para el cliente especificado",
           404,
           false
         );
       }
 
-      // Obtener el nombre del cliente.
-      const resCliente = await nombreCliente(clienteId);
-
-      // Caché para evitar llamadas repetitivas a obtenerProductoPorId.
-      const productoCache = new Map();
-
-      // Enriquecer cada pedido con la información de los productos.
-      const pedidosConProductos = await Promise.all(
-        rows.map(async (row) => {
-          if (!Array.isArray(row.productos)) {
-            row.productos = [];
-          }
-          row.productos = await Promise.all(
-            row.productos.map(async (producto) => {
-              if (!productoCache.has(producto.producto_id)) {
-                const resProducto = await obtenerProductoPorId(
-                  producto.producto_id
-                );
-                productoCache.set(producto.producto_id, resProducto.data);
-              }
-              const productoData = productoCache.get(producto.producto_id);
-              producto.nombre = productoData.nombre;
-              producto.precioIndividual = productoData.precio;
-              return producto;
-            })
-          );
-          return row;
+      const clienteRes = await this.#obtenerCliente(clienteId);
+      const pedidos = await Promise.all(
+        rows.map(async (pedido) => {
+          pedido.productos = await this.#procesarProductos(pedido.productos);
+          return pedido;
         })
       );
 
       const resultado = {
-        id: clienteId,
-        nombre: resCliente.data,
-        pedidos: pedidosConProductos,
+        nombre: clienteRes.data,
+        clienteId,
+        pedidos,
       };
 
-      return response("Pedidos obtenidos correctamente", 200, true, resultado);
+      return this.#response(
+        "Pedidos obtenidos correctamente",
+        200,
+        true,
+        resultado
+      );
     } catch (error) {
       console.error("Error en obtenerPedidoPorClienteId:", error);
-      throw response(
+      throw this.#response(
         "Error al obtener el pedido por ID del cliente",
         500,
         false
@@ -220,38 +160,20 @@ class Modelo {
    * @returns {Object} Respuesta de éxito o error.
    */
   static async crearNuevoPedido(clienteId, productos) {
-    const id = crypto.randomUUID();
-
+    const pedidoId = crypto.randomUUID();
     try {
       // Verificar existencia del cliente.
       const clienteResp = await clienteExiste(clienteId);
       if (!clienteResp.data) {
-        return response("El cliente no existe", 404, false);
+        return this.#response("El cliente no existe", 404, false);
       }
 
       // Validar existencia de productos y disponibilidad de stock.
-      const productosNoExistentes = [];
-      const productosSinStock = [];
-
-      await Promise.all(
-        productos.map(async ({ productoId, cantidad }) => {
-          const prodResp = await productoExiste(productoId);
-          if (!prodResp.data) {
-            productosNoExistentes.push(productoId);
-            return;
-          }
-          const cantidadResp = await revisarCantidadProducto(
-            productoId,
-            cantidad
-          );
-          if (!cantidadResp.data) {
-            productosSinStock.push(productoId);
-          }
-        })
-      );
+      const { productosNoExistentes, productosSinStock } =
+        await this.#validarProductos(productos);
 
       if (productosNoExistentes.length > 0) {
-        return response(
+        return this.#response(
           `Los siguientes productos no existen: ${productosNoExistentes.join(
             ", "
           )}`,
@@ -261,7 +183,7 @@ class Modelo {
       }
 
       if (productosSinStock.length > 0) {
-        return response(
+        return this.#response(
           `Stock insuficiente para los productos: ${productosSinStock.join(
             ", "
           )}`,
@@ -272,122 +194,146 @@ class Modelo {
 
       // Insertar el pedido.
       await pool.query(
-        `INSERT INTO pedidos (id, cliente_id, estado) VALUES (?, ?, ?)`,
-        [id, clienteId, "pendiente"]
+        `INSERT INTO pedidos (pedidoId, clienteId, estado) VALUES (?, ?, ?)`,
+        [pedidoId, clienteId, "pendiente"]
       );
 
       // Insertar los productos asociados en una sola consulta en lote.
       const values = productos.map(({ productoId, cantidad }) => [
-        id,
+        pedidoId,
         productoId,
         cantidad,
       ]);
       await pool.query(
-        `INSERT INTO pedido_productos (pedido_id, producto_id, cantidad) VALUES ?`,
+        `INSERT INTO pedido_productos (pedidoId, productoId, cantidad) VALUES ?`,
         [values]
       );
 
-      // Actualizar el stock de cada producto.
+      // Actualizar el stock de cada producto restando la cantidad solicitada.
       await Promise.all(
         productos.map(async ({ productoId, cantidad }) => {
           await restarCantidadProducto(productoId, cantidad);
         })
       );
 
-      return response("Pedido creado exitosamente", 200, true, { id });
+      return this.#response("Pedido creado exitosamente", 200, true, {
+        pedidoId,
+      });
     } catch (error) {
       console.error("Error en crearNuevoPedido:", error);
-      throw response("Error al crear un nuevo pedido", 500, false);
+      throw this.#response("Error al crear un nuevo pedido", 500, false);
     }
   }
 
   /**
    * Actualiza el estado de un pedido.
    * @param {String} estado - Los estados permitidos: cancelado, entregado.
-   * @param {String} id - ID del pedido.
+   * @param {String} pedidoId - ID del pedido.
    * @returns {Object} Respuesta de éxito o error.
    */
-  static async actualizarDatosPedido(estado, id) {
-    // Consultar el estado actual del pedido usando un método privado (#estadoPedido).
-    const estadoActual = await this.#estadoPedido(id);
-
-    // Validaciones según el estado actual.
-    switch (estadoActual) {
-      case "cancelado":
-        return response("El pedido ya fue cancelado", 400, false);
-      case "entregado":
-        return response("El pedido ya fue entregado", 400, false);
-      case null:
-        return response("No se encontró el pedido para actualizar", 404, false);
+  static async actualizarDatosPedido(estado, pedidoId) {
+    // Validar que el nuevo estado sea uno de los permitidos.
+    if (!["cancelado", "entregado"].includes(estado)) {
+      return this.#response(
+        "Estado inválido. Los estados permitidos son: [cancelado, entregado]",
+        400,
+        false
+      );
     }
 
-    // Formatear la fecha actual para el campo 'updated_at'
-    const updatedAt = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-    try {
-      // Validar que el nuevo estado sea uno de los permitidos.
-      if (!["cancelado", "entregado"].includes(estado)) {
-        return response(
-          "Estado inválido. Los estados permitidos son: [cancelado, entregado]",
-          400,
+    // Consultar el estado actual del pedido.
+    const estadoActual = await this.#estadoPedido(pedidoId);
+    switch (estadoActual) {
+      case "cancelado":
+        return this.#response("El pedido ya fue cancelado", 400, false);
+      case "entregado":
+        return this.#response("El pedido ya fue entregado", 400, false);
+      case null:
+        return this.#response(
+          "No se encontró el pedido para actualizar",
+          404,
           false
         );
-      }
+    }
 
-      // Si se solicita cancelar el pedido, se actualiza el stock de cada producto.
+    const updatedAt = this.#formatCurrentDate();
+
+    try {
+      // Si se solicita cancelar el pedido, actualizar el stock de cada producto.
       if (estado === "cancelado") {
-        const [productos] = await pool.query(
-          `SELECT producto_id, cantidad FROM pedido_productos WHERE pedido_id = ?`,
-          [id]
-        );
-        await Promise.all(
-          productos.map(({ producto_id, cantidad }) =>
-            sumarCantidadProducto(producto_id, cantidad)
-          )
-        );
+        await this.#actualizarStockAlCancelar(pedidoId);
       }
 
       // Actualizar el estado y la fecha de modificación del pedido.
       const [result] = await pool.query(
-        `UPDATE pedidos SET estado = ?, updated_at = ? WHERE id = ?`,
-        [estado, updatedAt, id]
+        `UPDATE pedidos SET estado = ?, updatedAt = ? WHERE pedidoId = ?`,
+        [estado, updatedAt, pedidoId]
       );
 
       if (result.affectedRows === 0) {
-        return response("No se encontró el pedido para actualizar", 404, false);
+        return this.#response(
+          "No se encontró el pedido para actualizar",
+          404,
+          false
+        );
       }
 
-      return response("Pedido actualizado correctamente", 200, true);
+      return this.#response("Pedido actualizado correctamente", 200, true);
     } catch (error) {
       console.error("Error actualizarDatosPedido:", error);
-      throw response("Error al actualizar los datos del pedido", 500, false);
+      throw this.#response(
+        "Error al actualizar los datos del pedido",
+        500,
+        false
+      );
     }
   }
 
   /**
    * Elimina un pedido por su ID.
-   * @param {String} id - ID del pedido.
+   * @param {String} pedidoId - ID del pedido.
    * @returns {Object} Respuesta de éxito o error.
    */
-  static async eliminarPedido(id) {
+  static async eliminarPedido(pedidoId) {
     try {
-      // Eliminar primero los productos asociados.
-      await pool.query(`DELETE FROM pedido_productos WHERE pedido_id = ?`, [
-        id,
+      // Consultar el estado actual del pedido.
+      const estadoActual = await this.#estadoPedido(pedidoId);
+      if (estadoActual === null) {
+        return this.#response(
+          "No se encontró el pedido para eliminar",
+          404,
+          false
+        );
+      }
+      if (estadoActual === "pendiente") {
+        return this.#response(
+          "No se puede eliminar un pedido pendiente",
+          400,
+          false
+        );
+      }
+      // Eliminar los productos asociados.
+      await pool.query(`DELETE FROM pedido_productos WHERE pedidoId = ?`, [
+        pedidoId,
       ]);
       // Eliminar el pedido.
-      const [result] = await pool.query(`DELETE FROM pedidos WHERE id = ?`, [
-        id,
-      ]);
+      const [result] = await pool.query(
+        `DELETE FROM pedidos WHERE pedidoId = ?`,
+        [pedidoId]
+      );
 
       if (result.affectedRows === 0) {
-        return response("No se encontró el pedido para eliminar", 404, false);
+        return this.#response(
+          "No se encontró el pedido para eliminar",
+          404,
+          false
+        );
       }
 
-      return response("Pedido eliminado correctamente", 200, true);
+      return this.#response("Pedido eliminado correctamente", 200, true);
     } catch (error) {
       console.error("Error eliminarPedido:", error);
-      throw response("Error al eliminar el pedido", 500, false);
+      throw this.#response("Error al eliminar el pedido", 500, false);
     }
   }
 
@@ -398,14 +344,26 @@ class Modelo {
    */
   static async eliminarTodosLosPedidos(clienteId) {
     try {
-      // Eliminar los productos asociados a los pedidos del cliente.
+      // Verificar si el cliente tiene pedidos pendientes.
+      const tienePedidoPendiente = await this.#clienteTienePedidoPendiente(
+        clienteId
+      );
+      if (tienePedidoPendiente) {
+        return this.#response(
+          "No se puede eliminar todos los pedidos si hay uno pendiente",
+          400,
+          false
+        );
+      }
+
+      // Eliminar productos asociados a los pedidos del cliente.
       const [{ affectedRows }] = await pool.query(
-        `DELETE FROM pedido_productos WHERE pedido_id IN (SELECT id FROM pedidos WHERE cliente_id = ?)`,
+        `DELETE FROM pedido_productos WHERE pedidoId IN (SELECT pedidoId FROM pedidos WHERE clienteId = ?)`,
         [clienteId]
       );
 
       if (affectedRows === 0) {
-        return response(
+        return this.#response(
           "No se encontraron pedidos para el cliente especificado.",
           404,
           false
@@ -413,16 +371,16 @@ class Modelo {
       }
 
       // Eliminar los pedidos del cliente.
-      await pool.query(`DELETE FROM pedidos WHERE cliente_id = ?`, [clienteId]);
+      await pool.query(`DELETE FROM pedidos WHERE clienteId = ?`, [clienteId]);
 
-      return response(
+      return this.#response(
         "Todos los pedidos del cliente se eliminaron correctamente",
         200,
         true
       );
     } catch (error) {
       console.error("Error eliminarTodosLosPedidos:", error);
-      throw response(
+      throw this.#response(
         "Error al eliminar todos los pedidos del cliente",
         500,
         false
@@ -430,32 +388,153 @@ class Modelo {
     }
   }
 
-  static async #estadoPedido(id) {
-    try {
-      const [rows] = await pool.query(
-        `SELECT estado FROM pedidos WHERE id = ?`,
-        [id]
-      );
+  /* MÉTODOS PRIVADOS */
 
-      return rows.length === 0 ? null : rows[0].estado;
-    } catch (error) {
-      console.error("Error en estadoPedido:", error);
-      throw response("Error al obtener el estado del pedido", 500, false);
+  /**
+   * Obtiene el nombre del cliente usando cache.
+   * @param {string} clienteId - ID del Cliente.
+   * @returns {Promise<Object>} Resultado del servicio GRPC.
+   */
+  static async #obtenerCliente(clienteId) {
+    if (!clienteCache.has(clienteId)) {
+      clienteCache.set(clienteId, nombreCliente(clienteId));
     }
+    return await clienteCache.get(clienteId);
+  }
+
+  /**
+   * Procesa y enriquece la lista de productos usando cache para evitar llamadas repetitivas.
+   * @param {Array<Object>} productos - Lista de productos a procesar.
+   * @returns {Promise<Array<Object>>} Lista de productos enriquecidos.
+   */
+  static async #procesarProductos(productos) {
+    return Promise.all(
+      productos.map(async (producto) => {
+        if (!productoCache.has(producto.productoId)) {
+          productoCache.set(
+            producto.productoId,
+            obtenerProductoPorId(producto.productoId)
+          );
+        }
+        const productoRes = await productoCache.get(producto.productoId);
+        return {
+          ...producto,
+          nombre: productoRes.data.nombre,
+          precio: productoRes.data.precio,
+        };
+      })
+    );
+  }
+
+  /**
+   * Valida la existencia y disponibilidad de stock para una lista de productos.
+   * @param {Array} productos - Lista de productos con { productoId, cantidad }.
+   * @returns {Promise<Object>} Objeto con arrays:
+   *   - productosNoExistentes: IDs de productos que no existen.
+   *   - productosSinStock: IDs de productos sin stock suficiente.
+   */
+  static async #validarProductos(productos) {
+    const productosNoExistentes = [];
+    const productosSinStock = [];
+
+    await Promise.all(
+      productos.map(async ({ productoId, cantidad }) => {
+        const prodResp = await productoExiste(productoId);
+        if (!prodResp.data) {
+          productosNoExistentes.push(productoId);
+          return;
+        }
+        const cantidadResp = await revisarCantidadProducto(
+          productoId,
+          cantidad
+        );
+        if (!cantidadResp.data) {
+          productosSinStock.push(productoId);
+        }
+      })
+    );
+
+    return { productosNoExistentes, productosSinStock };
+  }
+
+  /**
+   * Actualiza el stock de cada producto asociado a un pedido al cancelarlo.
+   * @param {String} pedidoId - ID del pedido.
+   * @returns {Promise<void>}
+   */
+  static async #actualizarStockAlCancelar(pedidoId) {
+    const [productos] = await pool.query(
+      `SELECT productoId, cantidad FROM pedido_productos WHERE pedidoId = ?`,
+      [pedidoId]
+    );
+    await Promise.all(
+      productos.map(({ productoId, cantidad }) =>
+        sumarCantidadProducto(productoId, cantidad)
+      )
+    );
+  }
+
+  /**
+   * Obtiene el estado actual de un pedido.
+   * @param {String} pedidoId - ID del pedido.
+   * @returns {Promise<String|null>} Estado actual del pedido o null si no existe.
+   */
+  static async #estadoPedido(pedidoId) {
+    const [rows] = await pool.query(
+      "SELECT estado FROM pedidos WHERE pedidoId = ?",
+      [pedidoId]
+    );
+    return rows.length > 0 ? rows[0].estado : null;
+  }
+
+  /**
+   * Verifica si un cliente tiene un pedido pendiente.
+   * @param {String} clienteId - ID del cliente.
+   * @returns {Promise<Boolean>} true si tiene un pedido pendiente, false en caso contrario.
+   */
+  static async #clienteTienePedidoPendiente(clienteId) {
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) AS total FROM pedidos WHERE clienteId = ? AND estado = 'pendiente'`,
+      [clienteId]
+    );
+    return rows[0].total > 0;
+  }
+
+  /**
+   * Devuelve la fecha y hora actual formateada para la base de datos.
+   * @returns {String} Fecha y hora en formato "YYYY-MM-DD HH:MM:SS".
+   */
+  static #formatCurrentDate() {
+    return new Date().toISOString().slice(0, 19).replace("T", " ");
+  }
+
+  /**
+   * Genera una respuesta estándar para las operaciones.
+   * @param {String} message - Mensaje de respuesta.
+   * @param {Number} status - Código de estado HTTP.
+   * @param {Boolean} success - Indica si la operación fue exitosa.
+   * @param {Object} data - Datos adicionales de la respuesta.
+   * @returns {Object} Objeto de respuesta estándar.
+   */
+  static #response(message, status = 503, success = false, data = undefined) {
+    return { header: { message, status, success }, data };
   }
 }
 
 export default Modelo;
 
 // Example usage of obtenerPedidoPorId
-(async () => {
+/* (async () => {
   try {
-    const result = await Modelo.actualizarDatosPedido(
-      "cancelado",
-      "44444444-4444-4444-4444-444444444444"
-    );
+    const result = await Modelo.crearNuevoPedido(
+      "11111111-1111--111-1111-11111111111a",
+      [
+        { productoId: "11111111-1111--111-1111-11111111111a", cantidad: 2 },
+        { productoId: "22222222-2222--222-2222-22222222222b", cantidad: 3 },
+      ]
+    )
     console.log(JSON.stringify(result));
   } catch (error) {
     console.error(error);
   }
-})();
+})(); */

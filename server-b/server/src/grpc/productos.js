@@ -10,9 +10,9 @@ const productos = new proto.ProductosPedidos(
   grpc.credentials.createInsecure()
 );
 
-export function productoExiste(id) {
+export function productoExiste(productoId) {
   return new Promise((resolve, reject) => {
-    productos.ProductoExiste({ id }, (error, res) => {
+    productos.ProductoExiste({ productoId }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -23,9 +23,9 @@ export function productoExiste(id) {
   });
 }
 
-export function obtenerProductoPorId(id) {
+export function obtenerProductoPorId(productoId) {
   return new Promise((resolve, reject) => {
-    productos.ObtenerProductoPorId({ id }, (error, res) => {
+    productos.ObtenerProductoPorId({ productoId }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -36,9 +36,9 @@ export function obtenerProductoPorId(id) {
   });
 }
 
-export function revisarCantidadProducto(id, cantidad) {
+export function revisarCantidadProducto(productoId, cantidad) {
   return new Promise((resolve, reject) => {
-    productos.RevisarCantidadProducto({ id, cantidad }, (error, res) => {
+    productos.RevisarCantidadProducto({ productoId, cantidad }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -49,9 +49,9 @@ export function revisarCantidadProducto(id, cantidad) {
   });
 }
 
-export function restarCantidadProducto(id, cantidad) {
+export function restarCantidadProducto(productoId, cantidad) {
   return new Promise((resolve, reject) => {
-    productos.RestarCantidadProducto({ id, cantidad }, (error, res) => {
+    productos.RestarCantidadProducto({ productoId, cantidad }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -62,9 +62,9 @@ export function restarCantidadProducto(id, cantidad) {
   });
 }
 
-export function sumarCantidadProducto(id, cantidad) {
+export function sumarCantidadProducto(productoId, cantidad) {
   return new Promise((resolve, reject) => {
-    productos.SumarCantidadProducto({ id, cantidad }, (error, res) => {
+    productos.SumarCantidadProducto({ productoId, cantidad }, (error, res) => {
       if (!error) {
         resolve(res);
       } else {
@@ -74,3 +74,12 @@ export function sumarCantidadProducto(id, cantidad) {
     });
   });
 }
+
+// (async () => {
+//   try {
+//     const res = await obtenerProductoPorId("f3664b2a-d1bd-45ef-920a-471b397c7cac");
+//     console.log(res);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })();

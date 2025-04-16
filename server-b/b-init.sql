@@ -1,43 +1,45 @@
 CREATE TABLE pedidos (
-    id CHAR(36) NOT NULL DEFAULT (UUID()),
-    cliente_id CHAR(36) NOT NULL,  -- Referencia al cliente que se gestiona vía gRPC (Servidor-A: MariaDB)
+    pedidoId CHAR(36) NOT NULL DEFAULT (UUID()),
+    clienteId CHAR(36) NOT NULL,
     estado ENUM('pendiente', 'cancelado', 'entregado') NOT NULL DEFAULT 'pendiente',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    INDEX idx_cliente_id (cliente_id)
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (pedidoId), 
+    INDEX idx_clienteId (clienteId)
 ) ENGINE=InnoDB;
 
 CREATE TABLE pedido_productos (
-    pedido_id CHAR(36) NOT NULL,     -- Referencia al pedido (tabla pedidos)
-    producto_id CHAR(36) NOT NULL,   -- Referencia al producto, obtenido vía gRPC desde PostgreSQL
+    pedidoId CHAR(36) NOT NULL,
+    productoId CHAR(36) NOT NULL,
     cantidad INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (pedido_id, producto_id),
-    INDEX idx_pedido_id (pedido_id),
-    INDEX idx_producto_id (producto_id)
+    PRIMARY KEY (pedidoId, productoId),
+    INDEX idx_productoId (productoId),
+    CONSTRAINT fk_pedido_productos_pedido
+        FOREIGN KEY (pedidoId)
+        REFERENCES pedidos(pedidoId)
+        ON DELETE CASCADE 
 ) ENGINE=InnoDB;
-
 
 -- Datos de prueba
 -- Pedido 1 para Juan Cortez (cliente con id: "1a546ef7-f445-11ef-94f8-b64139c65e8a")
-INSERT INTO pedidos (id, cliente_id, estado)
-VALUES ('11111111-1111-1111-1111-111111111111', '1a546ef7-f445-11ef-94f8-b64139c65e8a', 'pendiente');
+INSERT INTO pedidos (pedidoId, clienteId, estado)
+VALUES ('22222222-2222-2222-2222-22222222222a', '11111111-1111-1111-1111-11111111111a', 'pendiente');
 
 -- Pedido 2 para Laura Fernández (cliente con id: "1a54775f-f445-11ef-94f8-b64139c65e8a")
-INSERT INTO pedidos (id, cliente_id, estado)
-VALUES ('22222222-2222-2222-2222-222222222222', '1a54775f-f445-11ef-94f8-b64139c65e8a', 'entregado');
+INSERT INTO pedidos (pedidoId, clienteId, estado)
+VALUES ('22222222-2222-2222-2222-22222222222b', '11111111-1111-1111-1111-11111111111a', 'entregado');
 
 
 -- Asociamos productos al Pedido 1:
 -- Se agrega "Teclado Mecánico RGB" y "Auriculares Bluetooth"
-INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
+INSERT INTO pedido_productos (pedidoId, productoId, cantidad)
 VALUES 
-('11111111-1111-1111-1111-111111111111', '0b6f4e0e-f002-4b0e-afef-2fac54ad63b7', 1),
-('11111111-1111-1111-1111-111111111111', 'f33d139d-fafd-4544-b08c-c0f5b4c8ccc0', 2);
+('22222222-2222-2222-2222-22222222222a', '33333333-3333-3333-3333-33333333333d', 1),
+('22222222-2222-2222-2222-22222222222a', '33333333-3333-3333-3333-33333333333a', 2);
 
 -- Asociamos productos al Pedido 2:
 -- Se agrega "Mouse Inalámbrico" y "Silla Gamer"
-INSERT INTO pedido_productos (pedido_id, producto_id, cantidad)
+INSERT INTO pedido_productos (pedidoId, productoId, cantidad)
 VALUES 
-('22222222-2222-2222-2222-222222222222', 'f3664b2a-d1bd-45ef-920a-471b397c7cac', 1),
-('22222222-2222-2222-2222-222222222222', 'b9853cc2-e559-403f-9962-fbcf2fbda53e', 1);
+('22222222-2222-2222-2222-22222222222b', '33333333-3333-3333-3333-33333333333b', 1),
+('22222222-2222-2222-2222-22222222222b', '33333333-3333-3333-3333-33333333333e', 1);
