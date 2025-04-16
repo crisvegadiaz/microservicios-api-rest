@@ -2,16 +2,16 @@ import Joi from "joi";
 import response from "../../utils/response.js";
 import productos from "../../utils/grpcConfigProductos.js";
 import {
-  producTnameSchema,
-  priceSchema,
-  amountSchema,
+  productOnameSchema,
+  preciOSchema,
+  cantidaDSchema,
 } from "../../utils/validarProductos.js";
 
 // Schema para validar los datos de entrada
 const schema = Joi.object({
-  nombre: producTnameSchema.required(),
-  precio: priceSchema.required(),
-  cantidad: amountSchema.required(),
+  nombre: productOnameSchema.required(),
+  precio: preciOSchema.required(),
+  cantidad: cantidaDSchema.required(),
 });
 
 // Función crear un producto

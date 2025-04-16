@@ -1,16 +1,17 @@
 import Joi from "joi";
 import response from "../../utils/response.js";
-import clientes from "../../utils/grpcConfigClientes.js";
-import { uuidClienteIdSchema } from "../../utils/validarClientes.js";
+import pedidos from "../../utils/grpcConfigPedidos.js";
+import { uuidClienteSchema } from "../../utils/validarPedidos.js";
 
 // Validar el formato UUID
 const schema = Joi.object({
-  clienteId: uuidClienteIdSchema,
+  clienteId: uuidClienteSchema,
 });
 
-// Función para obtener un cliente por su id
-function clientePorId(req, res) {
+// Función para obtener pedido por clienteId
+function obtenerPedidoPorClienteId(req, res) {
   const clienteId = req.params;
+
   const { error } = schema.validate(clienteId);
 
   if (error) {
@@ -18,17 +19,16 @@ function clientePorId(req, res) {
     return res.status(message.header.status).json(message);
   }
 
-  clientes.ObtenerClientePorId(clienteId, (error, data) => {
+  pedidos.ObtenerPedidoPorClienteId(clienteId, (error, data) => {
     if (error) {
-      console.error("Error en clientePorId:", error);
+      console.error("Error obtenerPedidoPorClienteId: ", error);
       return res
         .status(500)
-        .json(response("Error al obtener el cliente api-rest"));
+        .json(response(`Error al obtener el pedido api-rest`));
     }
-
     const status = data?.header?.status || 200;
     return res.status(status).json(data);
   });
 }
 
-export default clientePorId;
+export default obtenerPedidoPorClienteId;

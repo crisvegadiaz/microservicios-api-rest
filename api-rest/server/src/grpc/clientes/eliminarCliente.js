@@ -1,24 +1,24 @@
 import Joi from "joi";
 import response from "../../utils/response.js";
 import clientes from "../../utils/grpcConfigClientes.js";
-import { uuidSchema } from "../../utils/validarClientes.js";
+import { uuidClienteIdSchema } from "../../utils/validarClientes.js";
 
 // Validar el formato UUID
 const schema = Joi.object({
-  id: uuidSchema,
+  clienteId: uuidClienteIdSchema,
 });
 
 // Función para eliminar un cliente por su id
 function eliminarCliente(req, res) {
-  const id = req.params;
-  const { error } = schema.validate(id);
+  const clienteId = req.params;
+  const { error } = schema.validate(clienteId);
 
   if (error) {
     const message = response(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
-  clientes.EliminarCliente(id, (error, data) => {
+  clientes.EliminarCliente(clienteId, (error, data) => {
     if (error) {
       console.error("Error en eliminarCliente:", error);
       return res

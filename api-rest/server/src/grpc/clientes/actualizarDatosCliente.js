@@ -2,7 +2,7 @@ import Joi from "joi";
 import response from "../../utils/response.js";
 import clientes from "../../utils/grpcConfigClientes.js";
 import {
-  uuidSchema,
+  uuidClienteIdSchema,
   usernameSchema,
   emailSchema,
   phoneSchema,
@@ -10,7 +10,7 @@ import {
 
 // Schema para validar los datos de entrada
 const schema = Joi.object({
-  id: uuidSchema,
+  clienteId: uuidClienteIdSchema,
   nombre: usernameSchema,
   email: emailSchema,
   telefono: phoneSchema,

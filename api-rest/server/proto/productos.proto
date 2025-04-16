@@ -5,7 +5,7 @@ package productos;
 import "google/protobuf/empty.proto";
 
 message Producto {
-  string id = 1;
+  string productoId = 1;
   string nombre = 2;
   double precio = 3;
   int32 cantidad = 4;
@@ -23,7 +23,7 @@ message ListarProductosResponse {
 }
 
 message ObtenerProductoPorIdRequest {
-  string id = 1;
+  string productoId = 1;
 }
 
 message ObtenerProductoPorIdResponse {
@@ -41,7 +41,7 @@ message CrearProductoResponse {
 }
 
 message ActualizarProductoRequest {
-  string id = 1;
+  string productoId = 1;
   Producto data = 2;
 }
 
@@ -50,7 +50,7 @@ message ActualizarProductoResponse {
 }
 
 message EliminarProductoRequest {
-  string id = 1;
+  string productoId = 1;
 }
 
 message EliminarProductoResponse {

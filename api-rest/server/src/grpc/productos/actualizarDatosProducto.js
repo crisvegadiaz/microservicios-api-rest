@@ -2,18 +2,18 @@ import Joi from "joi";
 import response from "../../utils/response.js";
 import productos from "../../utils/grpcConfigProductos.js";
 import {
-  uuidSchema,
-  producTnameSchema,
-  priceSchema,
-  amountSchema,
+  uuidProductoSchema,
+  productOnameSchema,
+  preciOSchema,
+  cantidaDSchema,
 } from "../../utils/validarProductos.js";
 
 // Schema para validar los datos de entrada
 const schema = Joi.object({
-  id: uuidSchema,
-  nombre: producTnameSchema,
-  precio: priceSchema,
-  cantidad: amountSchema,
+  productoId: uuidProductoSchema,
+  nombre: productOnameSchema,
+  precio: preciOSchema,
+  cantidad: cantidaDSchema,
 });
 
 // Función actualizar datos de producto por su id

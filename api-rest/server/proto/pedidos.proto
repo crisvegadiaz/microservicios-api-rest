@@ -18,11 +18,13 @@ message Producto {
 }
 
 message Pedido {
-  string estado = 1;
-  string id = 2;
-  string createdAt = 3;
-  string updatedAt = 4;
-  repeated Producto productos = 5;
+  string nombre = 1;
+  string pedidoId = 2;
+  string clienteId = 3;
+  string estado = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+  repeated Producto productos = 7;
 }
 
 message ClienteData {
@@ -33,7 +35,7 @@ message ClienteData {
 
 message ObtenerTodosLosPedidosResponse {
   ResponseHeader header = 1;
-  repeated ClienteData data = 2;
+  repeated Pedido data = 2;
 }
 
 message ObtenerPedidoPorClienteIdRequest {

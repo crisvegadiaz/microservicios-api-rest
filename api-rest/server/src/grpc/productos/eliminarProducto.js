@@ -1,24 +1,24 @@
 import Joi from "joi";
 import response from "../../utils/response.js";
 import productos from "../../utils/grpcConfigProductos.js";
-import { uuidSchema } from "../../utils/validarProductos.js";
+import { uuidProductoSchema } from "../../utils/validarProductos.js";
 
 // Validar el formato UUID
 const schema = Joi.object({
-  id: uuidSchema,
+  productoId: uuidProductoSchema,
 });
 
 // Función para eliminar producto
 function eliminarProducto(req, res) {
-  const id = req.params;
-  const { error } = schema.validate(id);
+  const productoId = req.params;
+  const { error } = schema.validate(productoId);
 
   if (error) {
     const message = response(error.details[0].message, 400);
     return res.status(message.header.status).json(message);
   }
 
-  productos.EliminarProducto(id, (error, data) => {
+  productos.EliminarProducto(productoId, (error, data) => {
     if (error) {
       console.error("Error eliminarProducto: ", error);
       return res

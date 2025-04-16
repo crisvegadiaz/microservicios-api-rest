@@ -5,7 +5,7 @@ package clientes;
 import "google/protobuf/empty.proto";
 
 message Cliente {
-  string id = 1;
+  string clienteId = 1;
   string nombre = 2;
   string email = 3;
   repeated string telefonos = 4;
@@ -31,7 +31,7 @@ message ListarClientesResponse {
 }
 
 message ObtenerClientePorIdRequest {
-  string id = 1;
+  string clienteId = 1;
 }
 
 message ObtenerClientePorIdResponse {
@@ -50,7 +50,7 @@ message CrearClienteResponse {
 }
 
 message ActualizarClienteRequest{
-  string id = 1;
+  string clienteId = 1;
   Data data = 2;
 }
 
@@ -59,7 +59,7 @@ message ActualizarClienteResponse {
 }
 
 message AgregarTelefonoClienteRequest {
- string id = 1;
+ string clienteId = 1;
  string telefono = 2;
 }
 
@@ -68,7 +68,7 @@ message AgregarTelefonoClienteResponse {
 }
 
 message EliminarTelefonoClienteRequest {
-  string id = 1;
+  string clienteId = 1;
   string telefono = 2;
 }
 
@@ -77,7 +77,7 @@ message EliminarTelefonoClienteResponse {
 }
 
 message EliminarClienteRequest{
-  string id = 1;
+  string clienteId = 1;
 }
 
 message EliminarClienteResponse{
