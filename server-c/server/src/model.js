@@ -3,11 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Función para generar respuestas estandarizadas de éxito o error
-function response(message, status = 503, success = false, data = undefined) {
-  return { header: { message, status, success }, data };
-}
-
 // Validación de las variables de entorno para la base de datos
 if (
   !process.env.DB_HOST ||
@@ -37,7 +32,7 @@ function createPool() {
   });
 
   pool.on("error", (err, _) => {
-    console.error("Error inesperado en el cliente inactivo: ", err);
+    console.error("Error inesperado en la conexión de Postgresql: ", err);
   });
 }
 
@@ -53,32 +48,32 @@ class Modelo {
       const { rowCount, rows } = await pool.query("SELECT * FROM productos");
 
       return rowCount === 0
-        ? response("No hay Productos", 404, false)
-        : response("Productos obtenidos", 200, true, rows);
+        ? this.#response("No hay Productos", 404, false)
+        : this.#response("Productos obtenidos", 200, true, rows);
     } catch (error) {
       console.error("Error en obtenerTodosLosProductos:", error);
-      throw response("Error al obtener todos los productos server-c");
+      throw this.#response("Error al obtener todos los productos server-c");
     }
   }
 
   /**
    * Obtiene un producto por su ID.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @returns {Promise<Object>} Respuesta con el producto o mensaje de error.
    */
-  static async obtenerProductoPorId(id) {
+  static async obtenerProductoPorId(productoId) {
     try {
       const { rowCount, rows } = await pool.query(
-        `SELECT * FROM productos WHERE id = $1`,
-        [id]
+        `SELECT * FROM productos WHERE "productoId" = $1`,
+        [productoId]
       );
 
       return rowCount === 0
-        ? response("El Producto no existe", 404, false)
-        : response("Producto obtenido", 200, true, rows[0]);
+        ? this.#response("El Producto no existe", 404, false)
+        : this.#response("Producto obtenido", 200, true, rows[0]);
     } catch (error) {
       console.error("Error en obtenerProductoPorId:", error);
-      throw response("Error al obtener el producto server-c");
+      throw this.#response("Error al obtener el producto server-c");
     }
   }
 
@@ -97,20 +92,20 @@ class Modelo {
         [nombre, precio, cantidad]
       );
 
-      return response("Producto creado", 200, true);
+      return this.#response("Producto creado", 200, true);
     } catch (error) {
       console.error("Error en crearNuevoProducto:", error);
-      throw response("Error al crear el producto server-c");
+      throw this.#response("Error al crear el producto server-c");
     }
   }
 
   /**
    * Actualiza los datos de un producto.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @param {Object} data - Datos a actualizar.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
-  static async actualizarDatosProducto(id, data) {
+  static async actualizarDatosProducto(productoId, data) {
     // Genera dinámicamente los campos a actualizar
     const camposActualizacion = Object.keys(data)
       .map((key, index) => `${key} = $${index + 1}`)
@@ -119,123 +114,139 @@ class Modelo {
 
     try {
       const { rowCount } = await pool.query(
-        `UPDATE productos SET ${camposActualizacion} WHERE id = $${
+        `UPDATE productos SET ${camposActualizacion} WHERE "productoId" = $${
           valores.length + 1
         }`,
-        [...valores, id]
+        [...valores, productoId]
       );
 
       return rowCount === 0
-        ? response("El Producto no existe", 404, false)
-        : response("Producto actualizado", 200, true);
+        ? this.#response("El Producto no existe", 404, false)
+        : this.#response("Producto actualizado", 200, true);
     } catch (error) {
       console.error("Error en actualizarDatosProducto:", error);
-      throw response("Error al actualizar el producto server-c");
+      throw this.#response("Error al actualizar el producto server-c");
     }
   }
 
   /**
    * Elimina un producto por su ID.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
-  static async eliminarProducto(id) {
+  static async eliminarProducto(productoId) {
     try {
       const { rowCount } = await pool.query(
-        `DELETE FROM productos WHERE id = $1`,
-        [id]
+        `DELETE FROM productos WHERE "productoId" = $1`,
+        [productoId]
       );
 
       return rowCount === 0
-        ? response("El Producto no existe", 404, false)
-        : response("Producto eliminado", 200, true);
+        ? this.#response("El Producto no existe", 404, false)
+        : this.#response("Producto eliminado", 200, true);
     } catch (error) {
       console.error("Error en eliminarProducto:", error);
-      throw response("Error al eliminar el producto server-c");
+      throw this.#response("Error al eliminar el producto server-c");
     }
   }
 
   /**
    * Verifica si un producto existe.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @returns {Promise<Object>} Respuesta indicando si existe o no.
    */
-  static async productoExiste(id) {
+  static async productoExiste(productoId) {
     try {
       const { rows } = await pool.query(
-        "SELECT COUNT(*) FROM productos WHERE id = $1",
-        [id]
+        `SELECT COUNT(*) FROM productos WHERE "productoId" = $1`,
+        [productoId]
       );
       const existe = Number(rows[0].count) > 0;
-      return response("Producto existe", 200, true, existe);
+      return this.#response("Producto existe", 200, true, existe);
     } catch (error) {
       console.error("Error en productoExiste:", error);
-      throw response("Error al verificar si el producto existe server-c");
+      throw this.#response("Error al verificar si el producto existe server-c");
     }
   }
 
   /**
    * Revisa si hay suficiente cantidad de un producto.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @param {number} cantidad - Cantidad a revisar.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
-  static async revisarCantidadProducto(id, cantidad) {
+  static async revisarCantidadProducto(productoId, cantidad) {
     try {
       const { rows } = await pool.query(
-        `SELECT cantidad FROM productos WHERE id = $1`,
-        [id]
+        `SELECT cantidad FROM productos WHERE "productoId" = $1`,
+        [productoId]
       );
 
       if (rows.length === 0) {
-        return response("Producto no encontrado", 404, false);
+        return this.#response("Producto no encontrado", 404, false);
       }
 
       const availableCantidad = rows[0].cantidad;
       const existeCantidad = availableCantidad >= cantidad;
-      return response("Cantidad revisada", 200, true, existeCantidad);
+      return this.#response("Cantidad revisada", 200, true, existeCantidad);
     } catch (error) {
       console.error("Error en revisarCantidadProducto:", error);
-      throw response("Error al revisar la cantidad del producto server-c");
+      throw this.#response(
+        "Error al revisar la cantidad del producto server-c"
+      );
     }
   }
 
   /**
    * Resta una cantidad de un producto
    * @param {number} cantidad - Cantidad a restar.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
-  static async restarCantidadProducto(id, cantidad) {
+  static async restarCantidadProducto(productoId, cantidad) {
     try {
       await pool.query(
-        `UPDATE productos SET cantidad = cantidad - $1 WHERE id = $2`,
-        [cantidad, id]
+        `UPDATE productos SET cantidad = cantidad - $1 WHERE "productoId" = $2`,
+        [cantidad, productoId]
       );
-      return response("Cantidad restada", 200, true);
+      return this.#response("Cantidad restada", 200, true);
     } catch (error) {
       console.error("Error en restarCantidadproducto:", error);
-      throw response("Error al restar la cantidad del producto server-c");
+      throw this.#response("Error al restar la cantidad del producto server-c");
     }
   }
 
   /**
    * Suma una cantidad a un producto.
    * @param {number} cantidad - Cantidad a sumar.
-   * @param {string} id - ID del producto.
+   * @param {string} productoId - ID del producto.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
-  static async sumarCantidadProducto(id, cantidad) {
+  static async sumarCantidadProducto(productoId, cantidad) {
     try {
       await pool.query(
-        `UPDATE productos SET cantidad = cantidad + $1 WHERE id = $2`,
-        [cantidad, id]
+        `UPDATE productos SET cantidad = cantidad + $1 WHERE "productoId" = $2`,
+        [cantidad, productoId]
       );
-      return response("Cantidad sumada", 200, true);
+      return this.#response("Cantidad sumada", 200, true);
     } catch (error) {
       console.error("Error en sumarCantidadproducto:", error);
-      throw response("Error al sumar la cantidad del producto server-c");
+      throw this.#response("Error al sumar la cantidad del producto server-c");
     }
+  }
+
+  /* MÉTODOS PRIVADOS */
+
+  /**
+   * Genera una respuesta estándar para las operaciones.
+   * @param {String} message - Mensaje de respuesta.
+   * @param {Number} status - Código de estado HTTP.
+   * @param {Boolean} success - Indica si la operación fue exitosa.
+   * @param {Object} data - Datos adicionales de la respuesta.
+   * @returns {Object} Objeto de respuesta estándar.
+   */
+  static #response(message, status = 503, success = false, data = undefined) {
+    return { header: { message, status, success }, data };
   }
 }
 

@@ -17,7 +17,7 @@ async function listarProductos(_, callback) {
 
 async function obtenerProductoPorId(call, callback) {
   try {
-    const res = await Modelo.obtenerProductoPorId(call.request.id);
+    const res = await Modelo.obtenerProductoPorId(call.request.productoId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -40,7 +40,7 @@ async function crearProducto(call, callback) {
 async function actualizarProducto(call, callback) {
   try {
     const res = await Modelo.actualizarDatosProducto(
-      call.request.id,
+      call.request.productoId,
       call.request.data
     );
     callback(null, res);
@@ -51,7 +51,7 @@ async function actualizarProducto(call, callback) {
 
 async function eliminarProducto(call, callback) {
   try {
-    const res = await Modelo.eliminarProducto(call.request.id);
+    const res = await Modelo.eliminarProducto(call.request.productoId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -60,7 +60,7 @@ async function eliminarProducto(call, callback) {
 
 async function productoExiste(call, callback) {
   try {
-    const res = await Modelo.productoExiste(call.request.id);
+    const res = await Modelo.productoExiste(call.request.productoId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -70,7 +70,7 @@ async function productoExiste(call, callback) {
 async function revisarCantidadProducto(call, callback) {
   try {
     const res = await Modelo.revisarCantidadProducto(
-      call.request.id,
+      call.request.productoId,
       call.request.cantidad
     );
     callback(null, res);
@@ -82,7 +82,7 @@ async function revisarCantidadProducto(call, callback) {
 async function restarCantidadProducto(call, callback) {
   try {
     const res = await Modelo.restarCantidadProducto(
-      call.request.id,
+      call.request.productoId,
       call.request.cantidad
     );
     callback(null, res);
@@ -94,7 +94,7 @@ async function restarCantidadProducto(call, callback) {
 async function sumarCantidadProducto(call, callback) {
   try {
     const res = await Modelo.sumarCantidadProducto(
-      call.request.id,
+      call.request.productoId,
       call.request.cantidad
     );
     callback(null, res);
@@ -103,7 +103,7 @@ async function sumarCantidadProducto(call, callback) {
   }
 }
 
-// Crear el servidor y registrar ambos métodos en el servicio "Productos"
+// Crear el servidor gRPC
 const server = new grpc.Server();
 server.addService(proto.Productos.service, {
   ListarProductos: listarProductos,
