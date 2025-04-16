@@ -17,7 +17,7 @@ async function listarClientes(_, callback) {
 
 async function obtenerClientePorId(call, callback) {
   try {
-    const res = await Modelo.obtenerClientePorId(call.request.id);
+    const res = await Modelo.obtenerClientePorId(call.request.clienteId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -40,7 +40,7 @@ async function crearCliente(call, callback) {
 async function actualizarCliente(call, callback) {
   try {
     const res = await Modelo.actualizarDatosCliente(
-      call.request.id,
+      call.request.clienteId,
       call.request.data
     );
     callback(null, res);
@@ -52,7 +52,7 @@ async function actualizarCliente(call, callback) {
 async function agregarTelefonoCliente(call, callback) {
   try {
     const res = await Modelo.agregarTelefonoCliente(
-      call.request.id,
+      call.request.clienteId,
       call.request.telefono
     );
     callback(null, res);
@@ -64,7 +64,7 @@ async function agregarTelefonoCliente(call, callback) {
 async function eliminarTelefonoCliente(call, callback) {
   try {
     const res = await Modelo.eliminarTelefonoCliente(
-      call.request.id,
+      call.request.clienteId,
       call.request.telefono
     );
     callback(null, res);
@@ -75,7 +75,7 @@ async function eliminarTelefonoCliente(call, callback) {
 
 async function eliminarCliente(call, callback) {
   try {
-    const res = await Modelo.eliminarCliente(call.request.id);
+    const res = await Modelo.eliminarCliente(call.request.clienteId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -84,7 +84,7 @@ async function eliminarCliente(call, callback) {
 
 async function clienteExiste(call, callback) {
   try {
-    const res = await Modelo.clienteExiste(call.request.id);
+    const res = await Modelo.clienteExiste(call.request.clienteId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
@@ -93,7 +93,7 @@ async function clienteExiste(call, callback) {
 
 async function nombreCliente(call, callback) {
   try {
-    const res = await Modelo.nombreCliente(call.request.id);
+    const res = await Modelo.nombreCliente(call.request.clienteId);
     callback(null, res);
   } catch (error) {
     callback(null, error);
