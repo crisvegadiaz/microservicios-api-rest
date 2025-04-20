@@ -1,5 +1,6 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import { eliminarProductoDeTodosLosPedidos } from "./grpc/pedidos.js";
 
 dotenv.config();
 
@@ -141,9 +142,30 @@ class Modelo {
         [productoId]
       );
 
-      return rowCount === 0
-        ? this.#response("El Producto no existe", 404, false)
-        : this.#response("Producto eliminado", 200, true);
+      if (rowCount === 0) {
+        return this.#response("El Producto no existe", 404, false);
+      }
+
+      // Llama al servicio gRPC para eliminar el producto de todos los pedidos
+      const grpcResponse = await eliminarProductoDeTodosLosPedidos(productoId);
+      if (
+        !grpcResponse ||
+        !grpcResponse.header ||
+        !grpcResponse.header.success
+      ) {
+        console.error(
+          `Error en gRPC eliminarProductoDeTodosLosPedidos para productoId ${productoId}:`,
+          grpcResponse?.header?.message || "Error desconocido en gRPC"
+        );
+
+        return this.#response(
+          "Error al eliminar el producto de los pedidos",
+          503,
+          false
+        );
+      }
+
+      return this.#response("Producto eliminado", 200, true);
     } catch (error) {
       console.error("Error en eliminarProducto:", error);
       throw this.#response("Error al eliminar el producto server-c");

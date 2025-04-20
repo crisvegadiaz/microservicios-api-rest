@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pedidos;
+
+message ResponseHeader {
+  string message = 1;
+  int32 status = 2;
+  bool success = 3;
+}
+
+message EliminarProductoDeTodosLosPedidosRequest {
+  string productoId = 1;
+}
+
+message EliminarProductoDeTodosLosPedidosResponse {
+  ResponseHeader header = 1;
+}
+
+service PedidosProductos {
+  rpc EliminarProductoDeTodosLosPedidos(EliminarProductoDeTodosLosPedidosRequest) returns (EliminarProductoDeTodosLosPedidosResponse) {}
+}

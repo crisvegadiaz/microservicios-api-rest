@@ -90,3 +90,29 @@ service Pedidos {
   rpc EliminarPedido(EliminarPedidoRequest) returns (EliminarPedidoResponse) {}
   rpc EliminarTodosLosPedidos(EliminarTodosLosPedidosRequest) returns (EliminarTodosLosPedidosResponse) {}
 }
+
+message ClienteTienePedidoPendienteRequest {
+  string clienteId = 1;
+}
+
+message ClienteTienePedidoPendienteResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+service PedidosClientes {
+  rpc ClienteTienePedidoPendiente(ClienteTienePedidoPendienteRequest) returns (ClienteTienePedidoPendienteResponse) {}
+  rpc EliminarTodosLosPedidos(EliminarTodosLosPedidosRequest) returns (EliminarTodosLosPedidosResponse) {}
+}
+
+message EliminarProductoDeTodosLosPedidosRequest {
+  string productoId = 1;
+}
+
+message EliminarProductoDeTodosLosPedidosResponse {
+  ResponseHeader header = 1;
+}
+
+service PedidosProductos {
+  rpc EliminarProductoDeTodosLosPedidos(EliminarProductoDeTodosLosPedidosRequest) returns (EliminarProductoDeTodosLosPedidosResponse) {}
+}

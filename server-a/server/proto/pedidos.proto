@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package pedidos;
+
+message ResponseHeader {
+  string message = 1;
+  int32 status = 2;
+  bool success = 3;
+}
+
+message EliminarTodosLosPedidosRequest {
+  string clienteId = 1;
+}
+
+message EliminarTodosLosPedidosResponse {
+  ResponseHeader header = 1;
+}
+
+message ClienteTienePedidoPendienteRequest {
+  string clienteId = 1;
+}
+
+message ClienteTienePedidoPendienteResponse {
+  ResponseHeader header = 1;
+  bool data = 2;
+}
+
+service PedidosClientes{
+  rpc ClienteTienePedidoPendiente(ClienteTienePedidoPendienteRequest) returns (ClienteTienePedidoPendienteResponse) {}
+  rpc EliminarTodosLosPedidos(EliminarTodosLosPedidosRequest) returns (EliminarTodosLosPedidosResponse) {}
+}

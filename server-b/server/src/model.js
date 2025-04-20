@@ -39,53 +39,7 @@ function createPool() {
 }
 createPool();
 
-// Definición de caches para evitar llamadas repetitivas a GRPC.
-const clienteCache = new Map();
-const productoCache = new Map();
-
 class Modelo {
-  /**
-   * Obtiene todos los Pedidos.
-   * @returns {Promise<Object>} Lista de Pedidos.
-   */
-  static async obtenerTodosLosPedidos() {
-    try {
-      const [rows] = await pool.query(
-        `SELECT
-        pc.pedidoId,
-        pc.clienteId,
-        pc.estado,
-        pc.createdAt,
-        pc.updatedAt,
-        IFNULL(
-            JSON_ARRAYAGG(
-                JSON_OBJECT(
-                    'productoId', pp.productoId,
-                    'cantidad', pp.cantidad
-                )
-            ),
-            JSON_ARRAY()
-        ) AS productos
-        FROM pedidos AS pc
-        LEFT JOIN pedido_productos AS pp ON pc.pedidoId = pp.pedidoId
-        GROUP BY pc.pedidoId;`
-      );
-
-      const list = await Promise.all(
-        rows.map(async (pedido) => {
-          const clienteRes = await this.#obtenerCliente(pedido.clienteId);
-          pedido.productos = await this.#procesarProductos(pedido.productos);
-          return { nombre: clienteRes.data, ...pedido };
-        })
-      );
-
-      return this.#response("Pedidos obtenidos correctamente", 200, true, list);
-    } catch (error) {
-      console.error("Error en obtenerTodosLosPedidos:", error);
-      throw this.#response("Error al obtener todos los pedidos", 500, false);
-    }
-  }
-
   /**
    * Obtiene los pedidos asociados a un cliente.
    * @param {string} clienteId - ID del Cliente.
@@ -123,7 +77,15 @@ class Modelo {
         );
       }
 
-      const clienteRes = await this.#obtenerCliente(clienteId);
+      const clienteRes = await nombreCliente(clienteId);
+      if (!clienteRes.data) {
+        return this.#response(
+          "El cliente no existe",
+          404,
+          false
+        );
+      }
+
       const pedidos = await Promise.all(
         rows.map(async (pedido) => {
           pedido.productos = await this.#procesarProductos(pedido.productos);
@@ -296,7 +258,6 @@ class Modelo {
    */
   static async eliminarPedido(pedidoId) {
     try {
-      // Consultar el estado actual del pedido.
       const estadoActual = await this.#estadoPedido(pedidoId);
       if (estadoActual === null) {
         return this.#response(
@@ -312,17 +273,13 @@ class Modelo {
           false
         );
       }
-      // Eliminar los productos asociados.
-      await pool.query(`DELETE FROM pedido_productos WHERE pedidoId = ?`, [
-        pedidoId,
-      ]);
-      // Eliminar el pedido.
-      const [result] = await pool.query(
+
+      const [{ affectedRows }] = await pool.query(
         `DELETE FROM pedidos WHERE pedidoId = ?`,
         [pedidoId]
       );
 
-      if (result.affectedRows === 0) {
+      if (affectedRows === 0) {
         return this.#response(
           "No se encontró el pedido para eliminar",
           404,
@@ -345,10 +302,8 @@ class Modelo {
   static async eliminarTodosLosPedidos(clienteId) {
     try {
       // Verificar si el cliente tiene pedidos pendientes.
-      const tienePedidoPendiente = await this.#clienteTienePedidoPendiente(
-        clienteId
-      );
-      if (tienePedidoPendiente) {
+      const { data } = await this.clienteTienePedidoPendiente(clienteId);
+      if (data) {
         return this.#response(
           "No se puede eliminar todos los pedidos si hay uno pendiente",
           400,
@@ -356,22 +311,18 @@ class Modelo {
         );
       }
 
-      // Eliminar productos asociados a los pedidos del cliente.
       const [{ affectedRows }] = await pool.query(
-        `DELETE FROM pedido_productos WHERE pedidoId IN (SELECT pedidoId FROM pedidos WHERE clienteId = ?)`,
+        `DELETE FROM pedidos WHERE clienteId = ?`,
         [clienteId]
       );
 
       if (affectedRows === 0) {
         return this.#response(
-          "No se encontraron pedidos para el cliente especificado.",
+          "No se encontraron pedidos para eliminar",
           404,
           false
         );
       }
-
-      // Eliminar los pedidos del cliente.
-      await pool.query(`DELETE FROM pedidos WHERE clienteId = ?`, [clienteId]);
 
       return this.#response(
         "Todos los pedidos del cliente se eliminaron correctamente",
@@ -388,19 +339,69 @@ class Modelo {
     }
   }
 
-  /* MÉTODOS PRIVADOS */
+  /**
+   * Verifica si un cliente tiene un pedido pendiente.
+   * @param {String} clienteId - ID del cliente.
+   * @returns {Object} Respuesta de éxito o error.
+   */
+  static async clienteTienePedidoPendiente(clienteId) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT COUNT(*) AS total FROM pedidos WHERE clienteId = ? AND estado = 'pendiente'`,
+        [clienteId]
+      );
+      return this.#response(
+        "Cliente tiene pedido pendiente",
+        200,
+        true,
+        rows[0].total > 0
+      );
+    } catch (error) {
+      console.error("Error clienteTienePedidoPendiente:", error);
+      throw this.#response(
+        "Error al verificar si el cliente tiene un pedido pendiente",
+        500,
+        false
+      );
+    }
+  }
 
   /**
-   * Obtiene el nombre del cliente usando cache.
-   * @param {string} clienteId - ID del Cliente.
-   * @returns {Promise<Object>} Resultado del servicio GRPC.
+   * Elimina un producto de todos los pedidos.
+   * @param {String} productoId - ID del producto.
+   * @returns {Object} Respuesta de éxito o error.
    */
-  static async #obtenerCliente(clienteId) {
-    if (!clienteCache.has(clienteId)) {
-      clienteCache.set(clienteId, nombreCliente(clienteId));
+  static async eliminarProductoDeTodosLosPedidos(productoId) {
+    try {
+      const [{ affectedRows }] = await pool.query(
+        `DELETE FROM pedido_productos WHERE productoId = ?`,
+        [productoId]
+      );
+
+      if (affectedRows === 0) {
+        return this.#response(
+          "No se encontraron productos para eliminar",
+          404,
+          false
+        );
+      }
+
+      return this.#response(
+        "Producto eliminado de todos los pedidos correctamente",
+        200,
+        true
+      );
+    } catch (error) {
+      console.error("Error eliminarProductoDeTodosLosPedidos:", error);
+      throw this.#response(
+        "Error al eliminar el producto de todos los pedidos",
+        500,
+        false
+      );
     }
-    return await clienteCache.get(clienteId);
   }
+
+  /* MÉTODOS PRIVADOS */
 
   /**
    * Procesa y enriquece la lista de productos usando cache para evitar llamadas repetitivas.
@@ -408,6 +409,7 @@ class Modelo {
    * @returns {Promise<Array<Object>>} Lista de productos enriquecidos.
    */
   static async #procesarProductos(productos) {
+    const productoCache = new Map();
     return Promise.all(
       productos.map(async (producto) => {
         if (!productoCache.has(producto.productoId)) {
@@ -488,19 +490,6 @@ class Modelo {
   }
 
   /**
-   * Verifica si un cliente tiene un pedido pendiente.
-   * @param {String} clienteId - ID del cliente.
-   * @returns {Promise<Boolean>} true si tiene un pedido pendiente, false en caso contrario.
-   */
-  static async #clienteTienePedidoPendiente(clienteId) {
-    const [rows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM pedidos WHERE clienteId = ? AND estado = 'pendiente'`,
-      [clienteId]
-    );
-    return rows[0].total > 0;
-  }
-
-  /**
    * Devuelve la fecha y hora actual formateada para la base de datos.
    * @returns {String} Fecha y hora en formato "YYYY-MM-DD HH:MM:SS".
    */
@@ -522,19 +511,3 @@ class Modelo {
 }
 
 export default Modelo;
-
-// Example usage of obtenerPedidoPorId
-/* (async () => {
-  try {
-    const result = await Modelo.crearNuevoPedido(
-      "11111111-1111--111-1111-11111111111a",
-      [
-        { productoId: "11111111-1111--111-1111-11111111111a", cantidad: 2 },
-        { productoId: "22222222-2222--222-2222-22222222222b", cantidad: 3 },
-      ]
-    )
-    console.log(JSON.stringify(result));
-  } catch (error) {
-    console.error(error);
-  }
-})(); */

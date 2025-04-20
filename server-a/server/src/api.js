@@ -1,6 +1,17 @@
+import dotenv from "dotenv";
 import Modelo from "./model.js";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+
+dotenv.config();
+
+// Validacion de las variables de entorno.
+if (!process.env.SERVER_GRPC_PORT) {
+  console.error(
+    "Error: La variable de entorno SERVER_GRPC_PORT no está definida."
+  );
+  process.exit(1);
+}
 
 // Cargar el archivo proto
 const packageDefinition = protoLoader.loadSync("./proto/clientes.proto");
@@ -118,9 +129,11 @@ server.addService(proto.ClientesPedidos.service, {
 });
 
 server.bindAsync(
-  "0.0.0.0:50050",
+  "0.0.0.0:" + process.env.SERVER_GRPC_PORT,
   grpc.ServerCredentials.createInsecure(),
   () => {
-    console.log("Server-A corriendo en el puerto 50050");
+    console.log(
+      "Server-A corriendo en el puerto " + process.env.SERVER_GRPC_PORT
+    );
   }
 );

@@ -1,5 +1,9 @@
-import mariadb from "mariadb";
 import dotenv from "dotenv";
+import mariadb from "mariadb";
+import {
+  clienteTienePedidoPendiente,
+  eliminarTodosLosPedidos,
+} from "./grpc/pedidos.js";
 
 dotenv.config();
 
@@ -216,6 +220,35 @@ class Modelo {
    */
   static async eliminarCliente(clienteId) {
     try {
+      // Verifica si el cliente tiene pedidos pendientes
+      const { data } = await clienteTienePedidoPendiente(clienteId);
+      if (data) {
+        return this.#response(
+          "El cliente tiene pedidos pendientes no se puede eliminar",
+          400,
+          false
+        );
+      }
+
+      // Elimina todos los pedidos del cliente
+      const grpcResponse = await eliminarTodosLosPedidos(clienteId);
+      if (
+        !grpcResponse ||
+        !grpcResponse.header ||
+        !grpcResponse.header.success
+      ) {
+        console.error(
+          `Error en gRPC eliminarTodosLosPedidos para clienteId ${clienteId}:`,
+          grpcResponse?.header?.message || "Error desconocido en gRPC"
+        );
+        return this.#response(
+          "Error al eliminar los pedidos del cliente",
+          503,
+          false
+        );
+      }
+
+      // Elimina el cliente
       const { affectedRows } = await pool.query(
         "DELETE FROM clientes WHERE clienteId = ?",
         [clienteId]

@@ -1,11 +1,14 @@
+import dotenv from "dotenv";
 import express from "express";
 import errorRouter from "./router/error.routes.js";
+import pedidosRouter from "./router/pedidos.routes.js";
 import clientesRouter from "./router/clientes.routes.js";
 import productosRouter from "./router/productos.routes.js";
-import pedidosRouter from "./router/pedidos.routes.js";
+
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.EXPRESS_POR  || 3000;
 
 app.disable("x-powered-by");
 app.use(express.json());

@@ -1,12 +1,23 @@
+import dotenv from "dotenv";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+
+dotenv.config();
+
+// Validacion de las variables de entorno.
+if (!process.env.PRODUCTOS_GRPC_IP_PORT) {
+  console.error(
+    "Error: La variable de entorno PRODUCTOS_GRPC_IP_PORT no está definida."
+  );
+  process.exit(1);
+}
 
 // Cargar el archivo proto
 const packageDefinition = protoLoader.loadSync("./proto/productos.proto");
 const proto = grpc.loadPackageDefinition(packageDefinition).productos;
 
 const productos = new proto.ProductosPedidos(
-  "localhost:50052",
+  process.env.PRODUCTOS_GRPC_IP_PORT,
   grpc.credentials.createInsecure()
 );
 
@@ -38,14 +49,17 @@ export function obtenerProductoPorId(productoId) {
 
 export function revisarCantidadProducto(productoId, cantidad) {
   return new Promise((resolve, reject) => {
-    productos.RevisarCantidadProducto({ productoId, cantidad }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error revisarCantidadProducto: ", error);
-        reject(error);
+    productos.RevisarCantidadProducto(
+      { productoId, cantidad },
+      (error, res) => {
+        if (!error) {
+          resolve(res);
+        } else {
+          console.error("Error revisarCantidadProducto: ", error);
+          reject(error);
+        }
       }
-    });
+    );
   });
 }
 
@@ -74,12 +88,3 @@ export function sumarCantidadProducto(productoId, cantidad) {
     });
   });
 }
-
-// (async () => {
-//   try {
-//     const res = await obtenerProductoPorId("f3664b2a-d1bd-45ef-920a-471b397c7cac");
-//     console.log(res);
-//   } catch (error) {
-//     console.log(error);
-//   }
-// })();
