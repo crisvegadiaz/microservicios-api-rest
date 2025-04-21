@@ -1,0 +1,21 @@
+vercion: "3"
+
+services:
+  api-server:
+    image: node:alpine
+    container_name: api-server
+    working_dir: /app
+    volumes:
+      - ./server:/app:Z
+    environment:
+      # El puerto del contenedor node
+      EXPRESS_PORT: "3000"
+      # En localhost hay que local la IP del servidor Grpc 
+      CLIENTES_GRPC_IP_PORT: "localhost:50050" 
+      PEDIDOS_GRPC_IP_PORT: "localhost:50051"
+      PRODUCTOS_GRPC_IP_PORT: "localhost:50052"
+    command: sh -c "npm install && node --run dev"
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./server/.env

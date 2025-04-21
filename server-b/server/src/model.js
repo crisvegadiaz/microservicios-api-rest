@@ -79,11 +79,7 @@ class Modelo {
 
       const clienteRes = await nombreCliente(clienteId);
       if (!clienteRes.data) {
-        return this.#response(
-          "El cliente no existe",
-          404,
-          false
-        );
+        return this.#response("El cliente no existe", 404, false);
       }
 
       const pedidos = await Promise.all(
@@ -108,9 +104,7 @@ class Modelo {
     } catch (error) {
       console.error("Error en obtenerPedidoPorClienteId:", error);
       throw this.#response(
-        "Error al obtener el pedido por ID del cliente",
-        500,
-        false
+        "Error al obtener el pedido por ID del cliente server-b"
       );
     }
   }
@@ -183,7 +177,7 @@ class Modelo {
       });
     } catch (error) {
       console.error("Error en crearNuevoPedido:", error);
-      throw this.#response("Error al crear un nuevo pedido", 500, false);
+      throw this.#response("Error al crear un nuevo pedido server-b");
     }
   }
 
@@ -243,11 +237,7 @@ class Modelo {
       return this.#response("Pedido actualizado correctamente", 200, true);
     } catch (error) {
       console.error("Error actualizarDatosPedido:", error);
-      throw this.#response(
-        "Error al actualizar los datos del pedido",
-        500,
-        false
-      );
+      throw this.#response("Error al actualizar los datos del pedido server-b");
     }
   }
 
@@ -290,7 +280,7 @@ class Modelo {
       return this.#response("Pedido eliminado correctamente", 200, true);
     } catch (error) {
       console.error("Error eliminarPedido:", error);
-      throw this.#response("Error al eliminar el pedido", 500, false);
+      throw this.#response("Error al eliminar el pedido server-b");
     }
   }
 
@@ -332,9 +322,7 @@ class Modelo {
     } catch (error) {
       console.error("Error eliminarTodosLosPedidos:", error);
       throw this.#response(
-        "Error al eliminar todos los pedidos del cliente",
-        500,
-        false
+        "Error al eliminar todos los pedidos del cliente server-b"
       );
     }
   }
@@ -359,9 +347,7 @@ class Modelo {
     } catch (error) {
       console.error("Error clienteTienePedidoPendiente:", error);
       throw this.#response(
-        "Error al verificar si el cliente tiene un pedido pendiente",
-        500,
-        false
+        "Error al verificar si el cliente tiene un pedido pendiente server-b"
       );
     }
   }
@@ -394,9 +380,7 @@ class Modelo {
     } catch (error) {
       console.error("Error eliminarProductoDeTodosLosPedidos:", error);
       throw this.#response(
-        "Error al eliminar el producto de todos los pedidos",
-        500,
-        false
+        "Error al eliminar el producto de todos los pedidos server-b"
       );
     }
   }

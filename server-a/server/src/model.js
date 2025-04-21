@@ -232,21 +232,7 @@ class Modelo {
 
       // Elimina todos los pedidos del cliente
       const grpcResponse = await eliminarTodosLosPedidos(clienteId);
-      if (
-        !grpcResponse ||
-        !grpcResponse.header ||
-        !grpcResponse.header.success
-      ) {
-        console.error(
-          `Error en gRPC eliminarTodosLosPedidos para clienteId ${clienteId}:`,
-          grpcResponse?.header?.message || "Error desconocido en gRPC"
-        );
-        return this.#response(
-          "Error al eliminar los pedidos del cliente",
-          503,
-          false
-        );
-      }
+      if (grpcResponse?.header?.status === 400) return grpcResponse;
 
       // Elimina el cliente
       const { affectedRows } = await pool.query(
@@ -337,8 +323,8 @@ class Modelo {
           FROM clientes
           WHERE
               clienteId = ?
-              AND JSON_CONTAINS(telefonos, '?')
-        ) AS telefono;`,
+              AND JSON_CONTAINS(telefonos, JSON_QUOTE(?))
+        ) AS existe;`,
         [clienteId, telefono]
       );
       return existe === 1;
