@@ -34,8 +34,6 @@ Antes de comenzar asegúrate de tener instaladas las siguientes herramientas:
 ---
 
 ## Configuración y despliegue
-
-1. **Clonar el repositorio**:
    
 
 ## Estructura del proyecto
