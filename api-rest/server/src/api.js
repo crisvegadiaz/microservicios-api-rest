@@ -8,7 +8,7 @@ import productosRouter from "./router/productos.routes.js";
 dotenv.config();
 
 const app = express();
-const port = process.env.EXPRESS_POR  || 3000;
+const port = process.env.EXPRESS_PORT  || 3000;
 
 app.disable("x-powered-by");
 app.use(express.json());

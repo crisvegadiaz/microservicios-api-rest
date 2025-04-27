@@ -1,0 +1,47 @@
+# Containerfile para el servicio api-server (validación de variables en runtime)
+
+# Imagen base
+FROM node:lts-alpine3.21
+
+# Directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar solo package.json y package-lock.json para caché inteligente
+COPY ./server/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto de la aplicación
+COPY ./server ./
+
+# Copiar script de entrada para validar variables de entorno
+# Asegúrate de colocar entrypoint.sh dentro de la carpeta 'server' para incluirlo en el contexto de build
+COPY ./server/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Exponer el puerto (se debe pasar EXPRESS_PORT al runtime)
+EXPOSE 3000
+
+# Usar entrypoint para comprobar variables 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Comando para ejecutar la aplicación
+CMD ["node", "src/api.js"]
+
+# Ejemplo de comando para construir la imagen:
+# podman build -f containerfile -t nombre-imagen . 
+
+# Ejemplo de podman-compose.yaml:
+# version: "3"
+# services:
+#   api-server:
+#     image: nombre-imagen
+#     container_name: nombre-contenedor
+#     environment:
+#       - EXPRESS_PORT=3500 # (Opcional) puerto de la API REST por defecto 3000
+#       - CLIENTES_GRPC_IP_PORT=192.168.1.20:50050
+#       - PEDIDOS_GRPC_IP_PORT=192.168.1.20:50051
+#       - PRODUCTOS_GRPC_IP_PORT=192.168.1.20:50052
+#     ports:
+#       - "3000:3500"

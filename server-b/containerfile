@@ -1,0 +1,69 @@
+# Containerfile para el servicio api-server (validación de variables en runtime)
+
+# Imagen base
+FROM node:lts-alpine3.21
+
+# Directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copiar solo package.json y package-lock.json para caché inteligente
+COPY ./server/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto de la aplicación
+COPY ./server ./
+
+# Copiar script de entrada para validar variables de entorno
+# Asegúrate de colocar entrypoint.sh dentro de la carpeta 'server' para incluirlo en el contexto de build
+COPY ./server/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Puerto por defecto para el gRPC
+# El 50051 es el puerto por defecto, pero se puede cambiar con la variable de entorno SERVER_GRPC_PORT
+EXPOSE 50051
+
+# Usar entrypoint para comprobar variables 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Comando para ejecutar la aplicación
+CMD ["node", "src/api.js"]
+
+# Ejemplo de comando para construir la imagen:
+# podman build -f containerfile -t nombre-imagen . 
+
+# Ejemplo podman-compose.yaml:
+#    version: "3"
+#    services:
+#      db-server-b:
+#       image: mariadb:11
+#       container_name: db-server-b
+#       environment:
+#         MARIADB_ROOT_PASSWORD: 12345
+#         MARIADB_USER: user-b
+#         MARIADB_PASSWORD: 12345
+#         MARIADB_DATABASE: db-b
+#       ports:
+#         - "3001:3306"
+#       volumes:
+#         - ./db-b:/var/lib/mysql:Z
+#         - ./b-init.sql:/docker-entrypoint-initdb.d/a-init.sql:Z
+#   
+#      node-server-b:
+#        image: server-b
+#        container_name: server-b
+#        working_dir: /app
+#        environment:
+#          - DB_HOST=db-server-b
+#          - DB_PORT=3306
+#          - DB_USER=user-b
+#          - DB_PASSWORD=12345
+#          - DB_NAME=db-b
+#          - SERVER_GRPC_PORT=50055 (Opcional) puerto del gRPC por defecto 50051
+#          - PEDIDOS_GRPC_IP_PORT=localhost:50051
+#        ports:
+#          - "50051:50055"
+#        depends_on:
+#          - db-server-b
+   
