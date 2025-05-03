@@ -33,15 +33,17 @@ CMD ["node", "src/api.js"]
 # podman build -f containerfile -t nombre-imagen . 
 
 # Ejemplo de podman-compose.yaml:
-# version: "3"
+# version: "3.9"
 # services:
 #   api-server:
 #     image: nombre-imagen
-#     container_name: nombre-contenedor
 #     environment:
-#       - EXPRESS_PORT=3500 # (Opcional) puerto de la API REST por defecto 3000
-#       - CLIENTES_GRPC_IP_PORT=192.168.1.20:50050
-#       - PEDIDOS_GRPC_IP_PORT=192.168.1.20:50051
-#       - PRODUCTOS_GRPC_IP_PORT=192.168.1.20:50052
+#       # Variables de entorno para la aplicación es opcional por default es 3000
+#       EXPRESS_PORT: 3500 
+#       # en localhost debe colocar la IP del host donde se ejecutan los servicios gRPC
+#       CLIENTES_GRPC_IP_PORT: localhost:50050
+#       PEDIDOS_GRPC_IP_PORT: localhost:50051
+#       PRODUCTOS_GRPC_IP_PORT: localhost:50052
 #     ports:
 #       - "3000:3500"
+    

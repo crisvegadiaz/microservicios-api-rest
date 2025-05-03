@@ -2,7 +2,7 @@
 
 set -e
 # (Opcional)
-export SERVER_GRPC_PORT="${SERVER_GRPC_PORT:-50052}"
+export SERVER_GRPC_PORT="${SERVER_GRPC_PORT:-50050}"
 
 # Validar sólo las GRPC (o las que necesites)
 : "${DB_HOST:?Error: DB_HOST no definida}"

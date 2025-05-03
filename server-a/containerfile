@@ -33,36 +33,35 @@ CMD ["node", "src/api.js"]
 # podman build -f containerfile -t nombre-imagen . 
 
 # Ejemplo podman-compose.yaml:
-#    version: "3"
-#    services:
-#      db-server-a:
-#       image: mariadb:11
-#       container_name: db-server-a
-#       environment:
-#         MARIADB_ROOT_PASSWORD: 12345
-#         MARIADB_USER: user-a
-#         MARIADB_PASSWORD: 12345
-#         MARIADB_DATABASE: db-a
-#       ports:
-#         - "3001:3306"
-#       volumes:
-#         - ./db-a:/var/lib/mysql:Z
-#         - ./a-init.sql:/docker-entrypoint-initdb.d/a-init.sql:Z
-#   
-#      node-server-a:
-#        image: server-a
-#        container_name: server-a
-#        working_dir: /app
-#        environment:
-#          - DB_HOST=db-server-a
-#          - DB_PORT=3306
-#          - DB_USER=user-a
-#          - DB_PASSWORD=12345
-#          - DB_NAME=db-a
-#          - SERVER_GRPC_PORT=50055 (Opcional) puerto del gRPC por defecto 50050
-#          - PEDIDOS_GRPC_IP_PORT=localhost:50051
-#        ports:
-#          - "50050:50055"
-#        depends_on:
-#          - db-server-a
-   
+# version: "3.9"
+# services:
+#   db-server-a:
+#     image: mariadb:11
+#     container_name: db-server-a
+#     environment:
+#       MARIADB_ROOT_PASSWORD: 12345
+#       MARIADB_USER: user-a
+#       MARIADB_PASSWORD: 12345
+#       MARIADB_DATABASE: db-a
+#     volumes:
+#       - ./db-a:/var/lib/mysql:Z
+#       - ./a-init.sql:/docker-entrypoint-initdb.d/a-init.sql:Z
+#     ports:
+#       - "4000:3306"
+
+#   node-server-a:
+#     image: nombre-imagen
+#     working_dir: /app
+#     environment:
+#       DB_HOST: db-server-a
+#       DB_PORT: 3306
+#       DB_USER: user-a
+#       DB_PASSWORD: 12345
+#       DB_NAME: db-a
+#       # Variables de entorno para la aplicación es opcional por default es 50050
+#       SERVER_GRPC_PORT: 50055
+#       # en localhost debe colocar la IP del host donde se ejecutan los servicios gRPC
+#       PEDIDOS_GRPC_IP_PORT: localhost:50051
+#     ports:
+#       - "50050:50055"
+#     depends_on:

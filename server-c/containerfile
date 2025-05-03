@@ -34,36 +34,37 @@ CMD ["node", "src/api.js"]
 # podman build -f containerfile -t nombre-imagen . 
 
 # Ejemplo podman-compose.yaml:
-#    version: "3"
-#    services:
-#      db-server-c:
-#       image: mariadb:11
-#       container_name: db-server-c
-#       environment:
-#         MARIADB_ROOT_PASSWORD: 12345
-#         MARIADB_USER: user-c
-#         MARIADB_PASSWORD: 12345
-#         MARIADB_DATABASE: db-c
-#       ports:
-#         - "3001:3306"
-#       volumes:
-#         - ./db-c:/var/lib/mysql:Z
-#         - ./c-init.sql:/docker-entrypoint-initdb.d/a-init.sql:Z
-#   
-#      node-server-c:
-#        image: server-c
-#        container_name: server-c
-#        working_dir: /app
-#        environment:
-#          - DB_HOST=db-server-c
-#          - DB_PORT=3306
-#          - DB_USER=user-c
-#          - DB_PASSWORD=12345
-#          - DB_NAME=db-c
-#          - SERVER_GRPC_PORT=50055 (Opcional) puerto del gRPC por defecto 50052
-#          - PEDIDOS_GRPC_IP_PORT=localhost:50051
-#        ports:
-#          - "50052:50055"
-#        depends_on:
-#          - db-server-c
-   
+# version: "3.9"
+# services:
+#   db-server-c:
+#     image: postgres:16.8-alpine3.20
+#     container_name: db-server-c
+#     environment:
+#       POSTGRES_USER: user-c
+#       POSTGRES_PASSWORD: 12345
+#       POSTGRES_DB: db-c
+#       PGDATA: /var/lib/postgresql/data/pgdata
+#     ports:
+#       - 4002:5432
+#     volumes:
+#       - ./db-c:/var/lib/postgresql/data/pgdata:Z
+#       - ./c-init.sql:/docker-entrypoint-initdb.d/c-init.sql:Z
+
+#   node-server-c:
+#     image: nombre-imagen
+#     container_name: server-c
+#     working_dir: /app
+#     environment:
+#       DB_HOST: db-server-c
+#       DB_PORT: 5432
+#       DB_USER: user-c
+#       DB_PASSWORD: 12345
+#       DB_NAME: db-c
+#       # Variables de entorno para la aplicación es opcional por default es 50050
+#       SERVER_GRPC_PORT: 50055
+#       # en localhost debe colocar la IP del host donde se ejecutan los servicios gRPC
+#       PEDIDOS_GRPC_IP_PORT: localhost:50051
+#     ports:
+#       - "50052:50055"
+#     depends_on:
+#       - db-server-c
