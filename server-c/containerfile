@@ -21,8 +21,8 @@ COPY ./server/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Puerto por defecto para el gRPC
-# El 50052 es el puerto por defecto, pero se puede cambiar con la variable de entorno SERVER_GRPC_PORT
-EXPOSE 50052
+# El 50050 es el puerto por defecto, pero se puede cambiar con la variable de entorno SERVER_GRPC_PORT
+EXPOSE 50050
 
 # Usar entrypoint para comprobar variables 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
