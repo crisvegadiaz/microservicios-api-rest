@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  db-server-a:
+    image: mariadb:11
+    container_name: db-server-a
+    environment:
+      MARIADB_ROOT_PASSWORD: 12345
+      MARIADB_USER: user-a
+      MARIADB_PASSWORD: 12345
+      MARIADB_DATABASE: db-a
+    volumes:
+      - ./db-a:/var/lib/mysql:Z
+      - ./a-init.sql:/docker-entrypoint-initdb.d/a-init.sql:Z
+    ports:
+      - "4000:3306"
+
+  node-server-a:
+    image: nombre-imagen
+    working_dir: /app
+    environment:
+      DB_HOST: db-server-a
+      DB_PORT: 3306
+      DB_USER: user-a
+      DB_PASSWORD: 12345
+      DB_NAME: db-a
+      # Variables de entorno para la aplicación es opcional por default es 50050
+      SERVER_GRPC_PORT: 50055
+      # En localhost debe colocar la IP del host donde se ejecutan los servicios gRPC con su puertos
+      PEDIDOS_GRPC_IP_PORT: 192.168.1.20:50051
+    ports:
+      - "50050:50055"
+    depends_on:
+      - db-server-a

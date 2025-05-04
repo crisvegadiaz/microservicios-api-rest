@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db-server-b:
+    image: mysql:lts
+    container_name: db-server-b
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_USER: user-b
+      MYSQL_PASSWORD: 12345
+      MYSQL_DATABASE: db-b
+    volumes:
+      - ./db-b:/var/lib/mysql:Z
+      - ./b-init.sql:/docker-entrypoint-initdb.d/b-init.sql:Z
+    ports:
+      - 4001:3306
+
+  node-server-b:
+    image: nombre-imagen
+    container_name: server-b
+    working_dir: /app
+    environment:
+      DB_HOST: db-server-b
+      DB_PORT: 3306
+      DB_USER: user-b
+      DB_PASSWORD: 12345
+      DB_NAME: db-b
+      # Variables de entorno para la aplicación es opcional por default es 50050
+      SERVER_GRPC_PORT: 50055 
+      # En localhost debe colocar la IP del host donde se ejecutan los servicios gRPC con su puertos
+      CLIENTES_GRPC_IP_PORT: localhost:50050
+      PRODUCTOS_GRPC_IP_PORT: localhost:50052
+    ports:
+      - "50051:50055"
+    depends_on:
+      - db-server-b
+
+
