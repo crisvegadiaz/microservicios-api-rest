@@ -16,7 +16,7 @@ services:
       - 4001:3306
 
   node-server-b:
-    image: nombre-imagen
+    image: docker.io/cristiandv/server-b
     container_name: server-b
     working_dir: /app
     environment:
@@ -26,7 +26,7 @@ services:
       DB_PASSWORD: 12345
       DB_NAME: db-b
       # Variables de entorno para la aplicación es opcional por default es 50050
-      SERVER_GRPC_PORT: 50055 
+      SERVER_GRPC_PORT: 50055
       # En localhost debe colocar la IP del host donde se ejecutan los servicios gRPC con su puertos
       CLIENTES_GRPC_IP_PORT: localhost:50050
       PRODUCTOS_GRPC_IP_PORT: localhost:50052
@@ -34,5 +34,3 @@ services:
       - "50051:50055"
     depends_on:
       - db-server-b
-
-

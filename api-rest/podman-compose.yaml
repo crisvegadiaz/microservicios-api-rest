@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   api-server:
-    image: nombre-imagen
+    image: docker.io/cristiandv/api-rest
+    container_name: api-rest
     environment:
       # Variables de entorno para la aplicación es opcional por default es 3000
       EXPRESS_PORT: 3500

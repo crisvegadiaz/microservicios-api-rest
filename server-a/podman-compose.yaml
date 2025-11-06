@@ -16,7 +16,8 @@ services:
       - "4000:3306"
 
   node-server-a:
-    image: nombre-imagen
+    image: docker.io/cristiandv/server-a
+    container_name: server-a
     working_dir: /app
     environment:
       DB_HOST: db-server-a

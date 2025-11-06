@@ -16,7 +16,7 @@ services:
       - ./c-init.sql:/docker-entrypoint-initdb.d/c-init.sql:Z
 
   node-server-c:
-    image: nombre-imagen
+    image: docker.io/cristiandv/server-c
     container_name: server-c
     working_dir: /app
     environment:

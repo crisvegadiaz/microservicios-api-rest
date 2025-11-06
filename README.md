@@ -1,15 +1,12 @@
 # microservicios-api-rest
----
 
 ## Descripción General
 
-Este proyecto implementa una arquitectura basada en microservicios que combina las siguientes tecnologías:
+Este proyecto implementa una arquitectura de microservicios con las siguientes tecnologías:
 
 - **API REST**: Un gateway HTTP que expone endpoints para gestionar clientes, pedidos y productos.
 - **gRPC**: Servicios backend responsables de la lógica de negocio y la persistencia de datos.
-- **Podman Compose**: Herramienta de orquestación para desplegar los servicios y las bases de datos PostgreSQL en contenedores.
-
-El objetivo principal es demostrar cómo una capa REST puede interactuar con múltiples microservicios gRPC, garantizando validación, consistencia de datos y manejo adecuado de errores.
+- **Podman Compose**: Herramienta para orquestar el despliegue de los servicios en contenedores.
 
 ---
 ## Diagrama de Arquitectura
@@ -19,59 +16,6 @@ El objetivo principal es demostrar cómo una capa REST puede interactuar con mú
 El diagrama anterior ofrece una visión general de la arquitectura del proyecto, mostrando las conexiones entre los diferentes microservicios.
 
 ---
-## Bases de Datos de los Microservicios
-
-Cada microservicio utiliza una base de datos independiente para garantizar su autonomía y escalabilidad. A continuación, se describen las bases de datos y sus respectivas tablas.
-
-### Base de Datos de Clientes (MariaDB)
-#### Tabla: `clientes`
-
-| Columna     | Tipo            | Restricciones                                                  | Descripción                                 |
-|-------------|-----------------|----------------------------------------------------------------|---------------------------------------------|
-| clienteId   | CHAR(36)        | NOT NULL, DEFAULT (UUID()), PRIMARY KEY                        | Identificador único del cliente (UUID).     |
-| nombre      | VARCHAR(100)    | NOT NULL                                                       | Nombre del cliente.                         |
-| email       | VARCHAR(255)    | NOT NULL, UNIQUE                                               | Correo electrónico del cliente.             |
-| telefonos   | JSON            | NOT NULL                                                       | Números de teléfono en formato JSON.        |
-| createdAt   | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP                                      | Fecha y hora de creación del registro.      |
-| updatedAt   | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP          | Fecha y hora de última actualización.       |
-
----
-### Base de Datos de Pedidos (MySQL)
-
-#### Tabla: `pedidos`
-
-| Columna     | Tipo                                      | Restricciones                                        | Descripción                                 |
-|-------------|-------------------------------------------|------------------------------------------------------|---------------------------------------------|
-| pedidoId    | CHAR(36)                                  | NOT NULL, PRIMARY KEY, DEFAULT (UUID())              | Identificador único del pedido.             |
-| clienteId   | CHAR(36)                                  | NOT NULL, INDEX (idx_clienteId)                      | Identificador único del cliente.            |
-| estado      | ENUM('pendiente', 'cancelado', 'entregado') | NOT NULL, DEFAULT 'pendiente'                        | Estado del pedido.                          |
-| createdAt   | TIMESTAMP                                 | DEFAULT CURRENT_TIMESTAMP                            | Fecha y hora de creación.                   |
-| updatedAt   | TIMESTAMP                                 | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | Fecha y hora de última actualización.       |
-
----
-
-#### Tabla: `pedido_productos`
-
-| Columna     | Tipo      | Restricciones                                  | Descripción                                 |
-|-------------|-----------|------------------------------------------------|---------------------------------------------|
-| pedidoId    | CHAR(36)  | NOT NULL, PRIMARY KEY (compuesto), FOREIGN KEY | Identificador del pedido.                   |
-| productoId  | CHAR(36)  | NOT NULL, PRIMARY KEY (compuesto), INDEX       | Identificador del producto.                 |
-| cantidad    | INT       | NOT NULL, DEFAULT 1                            | Cantidad de producto en el pedido.          |
-
----
-### Base de Datos de Productos (PostgreSQL)
-
-#### Tabla: `productos`
-
-| Columna      | Tipo            | Restricciones                          | Descripción                        |
-|--------------|-----------------|----------------------------------------|------------------------------------|
-| productoId   | UUID            | PRIMARY KEY, DEFAULT gen_random_uuid() | Identificador único del producto.  |
-| nombre       | VARCHAR(150)    | NOT NULL                               | Nombre del producto.               |
-| precio       | DECIMAL(10,2)   | NOT NULL                               | Precio del producto.               |
-| cantidad     | INT             | NOT NULL, DEFAULT 0                    | Cantidad disponible en inventario. |
-
----
-
 ## Requisitos
 
 Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
@@ -84,20 +28,20 @@ Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
 - [grpcurl](https://github.com/fullstorydev/grpcurl) (opcional).
 
 ---
-## Configuración y Despliegue
-
-La forma recomendada para desplegar este proyecto es mediante Podman Compose (o alternativamente Docker Compose). Asegúrate de que Podman esté instalado y funcionando en tu sistema.
+## Instalación y Despliegue
 
 Sigue estos pasos para configurar y levantar los servicios:
 
+1.  **Clonar el Repositorio:** Clona este repositorio en tu máquina local.
+
 1.  **Imágenes de Contenedor:** Las imágenes necesarias para los microservicios y la API REST están disponibles públicamente en Docker Hub:
-    *   API REST: `docker.io/cristiandv/api-rest`
-    *   Servicio Clientes (Server A): `docker.io/cristiandv/server-a`
-    *   Servicio Pedidos (Server B): `docker.io/cristiandv/server-b`
-    *   Servicio Productos (Server C): `docker.io/cristiandv/server-c`
+    *   API REST: `docker pull cristiandv/api-rest:latest`
+    *   Servicio Clientes (Server A): `docker pull cristiandv/server-a:latest`
+    *   Servicio Pedidos (Server B): `docker pull cristiandv/server-b:latest`
+    *   Servicio Productos (Server C): `docker pull cristiandv/server-c:latest`
 
 2.  **Estructura de Directorios:** Crea la siguiente estructura de carpetas. Copia los archivos `.sql` de inicialización y los archivos `podman-compose.yaml` desde este repositorio a sus respectivos directorios:
-
+    
 ```bash
 .
 ├── api-rest
