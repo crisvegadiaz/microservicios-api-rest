@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { promisify } from "util";
 
 dotenv.config();
 
-// Validacion de las variables de entorno.
+// Validación de las variables de entorno.
 if (!process.env.CLIENTES_GRPC_IP_PORT) {
   console.error(
     "Error: La variable de entorno CLIENTES_GRPC_IP_PORT no está definida."
@@ -21,29 +22,23 @@ const clientes = new proto.ClientesPedidos(
   grpc.credentials.createInsecure()
 );
 
-export function clienteExiste(clienteId) {
-  return new Promise((resolve, reject) => {
-    clientes.ClienteExiste({ clienteId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error clienteExiste: ", error);
-        reject(error);
-      }
-    });
-  });
+const clienteExisteGrpc = promisify(clientes.ClienteExiste.bind(clientes));
+const nombreClienteGrpc = promisify(clientes.NombreCliente.bind(clientes));
+
+export async function clienteExiste(clienteId) {
+  try {
+    return await clienteExisteGrpc({ clienteId });
+  } catch (error) {
+    console.error("Error clienteExiste: ", error);
+    throw error;
+  }
 }
 
-export function nombreCliente(clienteId) {
-  return new Promise((resolve, reject) => {
-    clientes.NombreCliente({ clienteId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error nombreCliente: ", error);
-        reject(error);
-      }
-    });
-  });
+export async function nombreCliente(clienteId) {
+  try {
+    return await nombreClienteGrpc({ clienteId });
+  } catch (error) {
+    console.error("Error nombreCliente: ", error);
+    throw error;
+  }
 }
-

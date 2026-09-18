@@ -204,9 +204,9 @@ class Modelo {
   }
 
   /**
-   * Resta una cantidad de un producto
-   * @param {number} cantidad - Cantidad a restar.
+   * Resta una cantidad de un producto.
    * @param {string} productoId - ID del producto.
+   * @param {number} cantidad - Cantidad a restar.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
   static async restarCantidadProducto(productoId, cantidad) {
@@ -217,15 +217,15 @@ class Modelo {
       );
       return this.#response("Cantidad restada", 200, true);
     } catch (error) {
-      console.error("Error en restarCantidadproducto:", error);
+      console.error("Error en restarCantidadProducto:", error);
       throw this.#response("Error al restar la cantidad del producto server-c");
     }
   }
 
   /**
    * Suma una cantidad a un producto.
-   * @param {number} cantidad - Cantidad a sumar.
    * @param {string} productoId - ID del producto.
+   * @param {number} cantidad - Cantidad a sumar.
    * @returns {Promise<Object>} Respuesta de éxito o error.
    */
   static async sumarCantidadProducto(productoId, cantidad) {
@@ -236,7 +236,7 @@ class Modelo {
       );
       return this.#response("Cantidad sumada", 200, true);
     } catch (error) {
-      console.error("Error en sumarCantidadproducto:", error);
+      console.error("Error en sumarCantidadProducto:", error);
       throw this.#response("Error al sumar la cantidad del producto server-c");
     }
   }

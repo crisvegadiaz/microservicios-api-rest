@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { promisify } from "util";
 
 dotenv.config();
 
-// Validacion de las variables de entorno.
+// Validación de las variables de entorno.
 if (!process.env.PRODUCTOS_GRPC_IP_PORT) {
   console.error(
     "Error: La variable de entorno PRODUCTOS_GRPC_IP_PORT no está definida."
@@ -21,70 +22,61 @@ const productos = new proto.ProductosPedidos(
   grpc.credentials.createInsecure()
 );
 
-export function productoExiste(productoId) {
-  return new Promise((resolve, reject) => {
-    productos.ProductoExiste({ productoId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error productoExiste: ", error);
-        reject(error);
-      }
-    });
-  });
+const productoExisteGrpc = promisify(productos.ProductoExiste.bind(productos));
+const obtenerProductoPorIdGrpc = promisify(
+  productos.ObtenerProductoPorId.bind(productos)
+);
+const revisarCantidadProductoGrpc = promisify(
+  productos.RevisarCantidadProducto.bind(productos)
+);
+const restarCantidadProductoGrpc = promisify(
+  productos.RestarCantidadProducto.bind(productos)
+);
+const sumarCantidadProductoGrpc = promisify(
+  productos.SumarCantidadProducto.bind(productos)
+);
+
+export async function productoExiste(productoId) {
+  try {
+    return await productoExisteGrpc({ productoId });
+  } catch (error) {
+    console.error("Error productoExiste: ", error);
+    throw error;
+  }
 }
 
-export function obtenerProductoPorId(productoId) {
-  return new Promise((resolve, reject) => {
-    productos.ObtenerProductoPorId({ productoId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error obtenerProductoPorId: ", error);
-        reject(error);
-      }
-    });
-  });
+export async function obtenerProductoPorId(productoId) {
+  try {
+    return await obtenerProductoPorIdGrpc({ productoId });
+  } catch (error) {
+    console.error("Error obtenerProductoPorId: ", error);
+    throw error;
+  }
 }
 
-export function revisarCantidadProducto(productoId, cantidad) {
-  return new Promise((resolve, reject) => {
-    productos.RevisarCantidadProducto(
-      { productoId, cantidad },
-      (error, res) => {
-        if (!error) {
-          resolve(res);
-        } else {
-          console.error("Error revisarCantidadProducto: ", error);
-          reject(error);
-        }
-      }
-    );
-  });
+export async function revisarCantidadProducto(productoId, cantidad) {
+  try {
+    return await revisarCantidadProductoGrpc({ productoId, cantidad });
+  } catch (error) {
+    console.error("Error revisarCantidadProducto: ", error);
+    throw error;
+  }
 }
 
-export function restarCantidadProducto(productoId, cantidad) {
-  return new Promise((resolve, reject) => {
-    productos.RestarCantidadProducto({ productoId, cantidad }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error restarCantidadProducto: ", error);
-        reject(error);
-      }
-    });
-  });
+export async function restarCantidadProducto(productoId, cantidad) {
+  try {
+    return await restarCantidadProductoGrpc({ productoId, cantidad });
+  } catch (error) {
+    console.error("Error restarCantidadProducto: ", error);
+    throw error;
+  }
 }
 
-export function sumarCantidadProducto(productoId, cantidad) {
-  return new Promise((resolve, reject) => {
-    productos.SumarCantidadProducto({ productoId, cantidad }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error sumarCantidadProducto: ", error);
-        reject(error);
-      }
-    });
-  });
+export async function sumarCantidadProducto(productoId, cantidad) {
+  try {
+    return await sumarCantidadProductoGrpc({ productoId, cantidad });
+  } catch (error) {
+    console.error("Error sumarCantidadProducto: ", error);
+    throw error;
+  }
 }

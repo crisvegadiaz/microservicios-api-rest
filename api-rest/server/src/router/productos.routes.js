@@ -1,6 +1,6 @@
 import { Router } from "express";
 import listProductos from "../grpc/productos/listProductos.js";
-import productoPorId from "../grpc/productos/ProductoPorId.js";
+import productoPorId from "../grpc/productos/productoPorId.js";
 import eliminarProducto from "../grpc/productos/eliminarProducto.js";
 import crearNuevoProducto from "../grpc/productos/crearNuevoProducto.js";
 import actualizarDatosProducto from "../grpc/productos/actualizarDatosProducto.js";

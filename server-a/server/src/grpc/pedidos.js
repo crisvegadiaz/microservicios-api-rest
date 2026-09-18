@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
+import { promisify } from "util";
 
 dotenv.config();
-// Validacion de las variables de entorno.
+
+// Validación de las variables de entorno.
 if (!process.env.PEDIDOS_GRPC_IP_PORT) {
   console.error(
     "Error: La variable de entorno PEDIDOS_GRPC_IP_PORT no está definida."
@@ -20,28 +22,27 @@ const pedidos = new proto.PedidosClientes(
   grpc.credentials.createInsecure()
 );
 
-export function clienteTienePedidoPendiente(clienteId) {
-  return new Promise((resolve, reject) => {
-    pedidos.ClienteTienePedidoPendiente({ clienteId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error clienteTienePedidoPendiente: ", error);
-        reject(error);
-      }
-    });
-  });
+const clienteTienePedidoPendienteGrpc = promisify(
+  pedidos.ClienteTienePedidoPendiente.bind(pedidos)
+);
+const eliminarTodosLosPedidosGrpc = promisify(
+  pedidos.EliminarTodosLosPedidos.bind(pedidos)
+);
+
+export async function clienteTienePedidoPendiente(clienteId) {
+  try {
+    return await clienteTienePedidoPendienteGrpc({ clienteId });
+  } catch (error) {
+    console.error("Error clienteTienePedidoPendiente: ", error);
+    throw error;
+  }
 }
 
-export function eliminarTodosLosPedidos(clienteId) {
-  return new Promise((resolve, reject) => {
-    pedidos.EliminarTodosLosPedidos({ clienteId }, (error, res) => {
-      if (!error) {
-        resolve(res);
-      } else {
-        console.error("Error EliminarTodosLosPedidos: ", error);
-        reject(error);
-      }
-    });
-  });
+export async function eliminarTodosLosPedidos(clienteId) {
+  try {
+    return await eliminarTodosLosPedidosGrpc({ clienteId });
+  } catch (error) {
+    console.error("Error eliminarTodosLosPedidos: ", error);
+    throw error;
+  }
 }

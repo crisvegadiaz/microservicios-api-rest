@@ -12,9 +12,9 @@ const clientesRouter = Router();
 clientesRouter.get("/clientes", listClientes);
 clientesRouter.post("/clientes", crearNuevoCliente);
 clientesRouter.get("/cliente/:clienteId", clientePorId);
-clientesRouter.delete("/cliente/:clienteId",eliminarCliente)
+clientesRouter.delete("/cliente/:clienteId", eliminarCliente);
 clientesRouter.put("/cliente/:clienteId", actualizarDatosCliente);
 clientesRouter.put("/cliente/telefonos/:clienteId", agregarTelefonoCliente);
-clientesRouter.delete("/cliente/telefonos/:clienteId",eliminarTelefonoCliente)
+clientesRouter.delete("/cliente/telefonos/:clienteId", eliminarTelefonoCliente);
 
 export default clientesRouter;

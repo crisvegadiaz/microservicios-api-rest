@@ -175,17 +175,17 @@ class Modelo {
       );
 
       return affectedRows === 0
-        ? this.#response("El clientes no existe", 404, false)
+        ? this.#response("El cliente no existe", 404, false)
         : this.#response("Teléfono agregado", 200, true);
     } catch (error) {
       console.error("Error agregarTelefonoCliente: " + error);
-      throw this.#response("Error al agregar el teléfon server-a");
+      throw this.#response("Error al agregar el teléfono server-a");
     }
   }
 
   /**
    * Elimina un teléfono del cliente.
-   * @param {number} clienteId - ID del cliente.
+   * @param {string} clienteId - ID del cliente.
    * @param {string} telefono - Teléfono a eliminar.
    * @returns {Promise<Object>} Respuesta de éxito
    */
@@ -205,7 +205,7 @@ class Modelo {
         [telefono, clienteId]
       );
       return affectedRows === 0
-        ? this.#response("El clientes no existe", 404, false)
+        ? this.#response("El cliente no existe", 404, false)
         : this.#response("Teléfono eliminado", 200, true);
     } catch (error) {
       console.error("Error eliminarTelefonoCliente: " + error);
@@ -240,7 +240,7 @@ class Modelo {
         [clienteId]
       );
       return affectedRows === 0
-        ? this.#response("El clientes no existe", 404, false)
+        ? this.#response("El cliente no existe", 404, false)
         : this.#response("Cliente eliminado", 200, true);
     } catch (error) {
       console.error("Error eliminarCliente: " + error);
@@ -250,7 +250,7 @@ class Modelo {
 
   /**
    * Verifica si un cliente existe.
-   * @param {string} id - ID del cliente.
+   * @param {string} clienteId - ID del cliente.
    * @returns {object} Respuesta de éxito.
    */
   static async clienteExiste(clienteId) {
@@ -268,7 +268,7 @@ class Modelo {
 
   /**
    * Obtiene el nombre de un cliente.
-   * @param {string} id - ID del cliente.
+   * @param {string} clienteId - ID del cliente.
    * @returns {Promise<Object>} Respuesta de éxito
    */
   static async nombreCliente(clienteId) {
@@ -282,7 +282,7 @@ class Modelo {
         ? this.#response("Cliente no encontrado", 404, false)
         : this.#response("Cliente obtenido", 200, true, nombre);
     } catch (error) {
-      console.error("Error obtenerClientePorId: " + error);
+      console.error("Error nombreCliente: " + error);
       throw this.#response("Error al obtener el cliente server-a");
     }
   }

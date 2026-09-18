@@ -28,8 +28,8 @@ services:
       # Variables de entorno para la aplicación es opcional por default es 50050
       SERVER_GRPC_PORT: 50055
       # En localhost debe colocar la IP del host donde se ejecutan los servicios gRPC con su puertos
-      CLIENTES_GRPC_IP_PORT: localhost:50050
-      PRODUCTOS_GRPC_IP_PORT: localhost:50052
+      CLIENTES_GRPC_IP_PORT: host.containers.internal:50050
+      PRODUCTOS_GRPC_IP_PORT: host.containers.internal:50052
     ports:
       - "50051:50055"
     depends_on:
